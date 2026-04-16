@@ -75,6 +75,10 @@ class Registration extends Model
         return $this->registration_type === 'international';
     }
 
+    /**
+     * Calculate final score. Score range: 0-10, Weight: percentage (sums to 100).
+     * Formula: sum(score × weight / 100) for each criteria.
+     */
     public function calculateFinalScore(): float
     {
         $criterias = $this->competitionCategory->judgingCriterias;
