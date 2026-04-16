@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Work+Sans:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error": "#ffffff",
+                    "surface": "#f8f9ff",
+                    "secondary-fixed": "#ffdbcb",
+                    "error": "#ba1a1a",
+                    "surface-variant": "#dbe3f2",
+                    "secondary-container": "#fd7624",
+                    "on-tertiary-fixed": "#141c27",
+                    "on-tertiary-container": "#f0f4ff",
+                    "inverse-primary": "#9acbff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "inverse-surface": "#29313c",
+                    "primary-fixed-dim": "#9acbff",
+                    "background": "#f8f9ff",
+                    "on-background": "#141c27",
+                    "on-tertiary-fixed-variant": "#3f4753",
+                    "primary-container": "#0574b9",
+                    "surface-container": "#e6eefd",
+                    "surface-dim": "#d2dae9",
+                    "on-secondary-container": "#5d2300",
+                    "surface-tint": "#00629e",
+                    "surface-container-high": "#e1e9f8",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#bfc7d5",
+                    "surface-container-low": "#eff4ff",
+                    "on-secondary-fixed": "#341100",
+                    "on-primary-container": "#eff5ff",
+                    "outline-variant": "#c0c7d2",
+                    "secondary": "#9f4200",
+                    "on-secondary-fixed-variant": "#793000",
+                    "on-tertiary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#141c27",
+                    "primary-fixed": "#cfe5ff",
+                    "surface-bright": "#f8f9ff",
+                    "tertiary-fixed": "#dbe3f2",
+                    "tertiary-container": "#68707d",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001d34",
+                    "tertiary": "#505864",
+                    "outline": "#707882",
+                    "on-primary": "#ffffff",
+                    "primary": "#005b93",
+                    "surface-container-highest": "#dbe3f2",
+                    "on-surface-variant": "#404750",
+                    "secondary-fixed-dim": "#ffb692",
+                    "on-primary-fixed-variant": "#004a79"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Work Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .editorial-gradient {
+            background: linear-gradient(135deg, #005b93 0%, #0574b9 100%);
+        }
+        .glass-header {
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl docked full-width top-0 sticky z-50 transition-all duration-300">
+<div class="flex justify-between items-center max-w-7xl mx-auto px-6 h-20">
+<div class="text-lg font-extrabold text-sky-800 dark:text-sky-200 font-headline">
+                Esa Unggul International Event 2026
+            </div>
+<div class="hidden md:flex items-center space-x-8 font-headline font-semibold tracking-tight">
+<a class="text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-sky-50/50 dark:hover:bg-sky-900/30 transition-all duration-300" href="#">Home</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-sky-50/50 dark:hover:bg-sky-900/30 transition-all duration-300" href="#">Registration</a>
+<a class="text-sky-700 dark:text-sky-400 border-b-2 border-sky-600 pb-1" href="#">Rules</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-sky-50/50 dark:hover:bg-sky-900/30 transition-all duration-300" href="#">Contact</a>
+</div>
+<button class="editorial-gradient text-on-primary px-6 py-2.5 rounded-xl font-headline font-bold scale-95 duration-200 ease-in-out hover:scale-100 transition-transform">
+                Register Now
+            </button>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-12 md:py-20">
+<!-- Hero Section -->
+<header class="mb-20">
+<div class="flex flex-col md:flex-row gap-12 items-start">
+<div class="md:w-3/5">
+<span class="inline-block px-4 py-1.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label text-xs font-bold tracking-wider mb-6">REGISTRATION OPEN</span>
+<h1 class="text-5xl md:text-7xl font-headline font-extrabold tracking-tight text-on-surface leading-tight mb-8">
+                        The Rules of <br/><span class="text-primary">Excellence.</span>
+</h1>
+<p class="text-lg md:text-xl text-on-surface-variant leading-relaxed max-w-2xl">
+                        A curated framework for global thinkers. Ensure your submission aligns with our standards for the 2026 International competition.
+                    </p>
+</div>
+<div class="md:w-2/5 relative">
+<div class="aspect-square rounded-full overflow-hidden bg-surface-container shadow-2xl">
+<img alt="Professional seminar hall" class="w-full h-full object-cover" data-alt="Modern architectural detail of an academic building with clean glass lines and soft natural sunlight reflecting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuvFRlDR1XHdWj2S2qXbsEp40jNUBAcvREy9S7El14AWRhfJBLCgvUwzKJDgjO_g87rd9I92ami9TlfFFlg35AGnfpZ5Ky-LJMaVbLN6JLWq1SpWK3HOE86Ha129Sjw5EKCLSpMIyUkDgy-y9ikIyb7lta8buI5rvMmrmMdqxRRdcp1Tk_6x5c7SZTEAQezYK4Mxy9b65NQh8ScPZC6qE9amklfjNZ3eJ7gkndHUtBzQ7XXjkwZvTqedFMChHbt-fi2sTE28cjKvs"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Bento Grid Rules -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Competition Format -->
+<section class="md:col-span-8 bg-surface-container-low rounded-xl p-8 md:p-12 relative overflow-hidden group">
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="trophy">trophy</span>
+<h2 class="text-3xl font-headline font-bold text-on-surface">Competition Format</h2>
+</div>
+<div class="grid md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<h3 class="text-xl font-headline font-semibold text-primary-container">Preliminary Round</h3>
+<p class="text-on-surface-variant">Your journey begins digitally. Participants must submit their initial entry through a high-quality video or artwork presentation. This stage focuses on conceptual depth and creative execution.</p>
+</div>
+<div class="space-y-4">
+<h3 class="text-xl font-headline font-semibold text-primary-container">Grand Final</h3>
+<p class="text-on-surface-variant">The final showcase will be held live at the <strong>Kemala Ballroom</strong> for local participants, or virtually via <strong>Zoom</strong> for international finalists, ensuring a global stage for all.</p>
+</div>
+</div>
+</div>
+<div class="absolute -bottom-10 -right-10 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-9xl" data-icon="account_balance">account_balance</span>
+</div>
+</section>
+<!-- Submission Deadlines (Small Card) -->
+<section class="md:col-span-4 bg-primary-container text-on-primary-container rounded-xl p-8 flex flex-col justify-between shadow-lg">
+<div>
+<span class="material-symbols-outlined text-4xl mb-4" data-icon="event_available">event_available</span>
+<h2 class="text-2xl font-headline font-bold mb-4">Final Submission</h2>
+<p class="opacity-90 font-body">Don't miss the window for the 2026 cohort. Submissions close strictly at midnight local time.</p>
+</div>
+<div class="mt-8">
+<div class="text-4xl font-headline font-black">MAY 15</div>
+<div class="text-sm font-label opacity-75">2026 DEADLINE</div>
+</div>
+</section>
+<!-- Workshop Details -->
+<section class="md:col-span-12 bg-surface-container-lowest rounded-xl p-8 md:p-12 shadow-sm border-2 border-surface-container-low">
+<div class="flex flex-col md:flex-row gap-12">
+<div class="md:w-1/3">
+<div class="p-6 bg-surface-container rounded-xl">
+<span class="material-symbols-outlined text-secondary text-5xl mb-4" data-icon="record_voice_over" style="font-variation-settings: 'FILL' 1;">record_voice_over</span>
+<h2 class="text-2xl font-headline font-bold mb-4">Workshop Focus</h2>
+<p class="text-on-surface-variant font-body leading-relaxed">Preparation is the key to excellence. Our specialized workshops are designed to transform your raw ideas into powerful narratives.</p>
+</div>
+</div>
+<div class="md:w-2/3 grid md:grid-cols-2 gap-10">
+<div class="space-y-3">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+<span>Storytelling Mastery</span>
+</div>
+<p class="text-on-surface-variant text-sm">Techniques for crafting effective narratives that resonate with international audiences and academic panels.</p>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Public Speaking</span>
+</div>
+<p class="text-on-surface-variant text-sm">Advanced delivery strategies to maintain authority and clarity during high-pressure presentations.</p>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined" data-icon="person_play">person_play</span>
+<span>Stage Presence</span>
+</div>
+<p class="text-on-surface-variant text-sm">Commanding the physical or digital space through body language and confident engagement.</p>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span>Impactful Delivery</span>
+</div>
+<p class="text-on-surface-variant text-sm">Honing the nuance of tone, pace, and rhetorical devices for maximum persuasive effect.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Submission Guidelines -->
+<section class="md:col-span-7 bg-surface-container rounded-xl p-8 md:p-12">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="rule">rule</span>
+<h2 class="text-3xl font-headline font-bold text-on-surface">Submission Guidelines</h2>
+</div>
+<ul class="space-y-6">
+<li class="flex gap-4 items-start">
+<span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 font-bold text-sm">01</span>
+<div>
+<span class="font-headline font-bold text-on-surface">Originality Requirement</span>
+<p class="text-on-surface-variant text-sm mt-1">All work must be original and not previously published or awarded in other competitions.</p>
+</div>
+</li>
+<li class="flex gap-4 items-start">
+<span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 font-bold text-sm">02</span>
+<div>
+<span class="font-headline font-bold text-on-surface">Video Standards</span>
+<p class="text-on-surface-variant text-sm mt-1">Minimum 1080p resolution, landscape orientation, with clear audio and no copyright-infringing background music.</p>
+</div>
+</li>
+<li class="flex gap-4 items-start">
+<span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 font-bold text-sm">03</span>
+<div>
+<span class="font-headline font-bold text-on-surface">Digital Artwork File</span>
+<p class="text-on-surface-variant text-sm mt-1">High-resolution PDF or JPEG (minimum 300 DPI) for visual submissions, accompanied by a 300-word concept description.</p>
+</div>
+</li>
+</ul>
+</section>
+<!-- Contact Information -->
+<section class="md:col-span-5 bg-surface-container-high rounded-xl p-8 md:p-12 flex flex-col justify-between">
+<div>
+<h2 class="text-2xl font-headline font-bold mb-2">Need Clarification?</h2>
+<p class="text-on-surface-variant mb-8">Our academic committee is here to assist with any technical or administrative inquiries.</p>
+<div class="space-y-4">
+<div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl">
+<span class="material-symbols-outlined text-primary" data-icon="alternate_email">alternate_email</span>
+<span class="font-body font-medium text-on-surface">jefry.sunupurwa@esaunggul.ac.id</span>
+</div>
+<div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<span class="font-body font-medium text-on-surface">Jakarta, Indonesia</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-outline-variant">
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant mb-4">Official Channels</p>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-dim flex items-center justify-center hover:bg-primary transition-colors hover:text-white cursor-pointer">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-dim flex items-center justify-center hover:bg-primary transition-colors hover:text-white cursor-pointer">
+<span class="material-symbols-outlined" data-icon="help_center">help_center</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Call to Action -->
+<section class="mt-20 editorial-gradient rounded-3xl p-12 text-center text-on-primary">
+<h2 class="text-3xl md:text-5xl font-headline font-extrabold mb-6">Ready to make your mark?</h2>
+<p class="text-xl opacity-90 mb-10 max-w-2xl mx-auto">Download the full rulebook or proceed directly to registration to secure your spot in the 2026 event.</p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<button class="bg-white text-primary px-8 py-4 rounded-xl font-headline font-bold text-lg hover:scale-105 transition-transform">
+                    Download PDF Rulebook
+                </button>
+<button class="bg-primary-container text-white px-8 py-4 rounded-xl font-headline font-bold text-lg hover:scale-105 transition-transform border border-white/20">
+                    Registration Portal
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-50 dark:bg-slate-950 full-width py-12">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto px-8">
+<div class="space-y-4">
+<div class="text-xl font-black text-sky-900 dark:text-sky-100 font-headline">
+                    Esa Unggul
+                </div>
+<p class="text-slate-500 dark:text-slate-400 font-body text-sm leading-relaxed">
+                    Celebrating 2026 through the lens of international academic collaboration and excellence.
+                </p>
+</div>
+<div class="flex flex-col space-y-3 font-body text-sm">
+<span class="font-bold text-sky-600 mb-2">Navigation</span>
+<a class="text-slate-500 dark:text-slate-400 hover:text-orange-600 transition-colors" href="#">University Address</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-orange-600 transition-colors" href="#">Email Us</a>
+</div>
+<div class="flex flex-col space-y-3 font-body text-sm">
+<span class="font-bold text-sky-600 mb-2">Legal</span>
+<a class="text-slate-500 dark:text-slate-400 hover:text-orange-600 transition-colors" href="#">Terms of Service</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-orange-600 transition-colors" href="#">Privacy Policy</a>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-8 mt-12 pt-8 border-t border-slate-200 dark:border-slate-800 text-center">
+<p class="text-slate-500 dark:text-slate-400 font-body text-sm">
+                © 2026 Esa Unggul University. Jakarta, Indonesia.
+            </p>
+</div>
+</footer>
+</body></html>
