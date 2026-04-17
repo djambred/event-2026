@@ -10,13 +10,14 @@ class Score extends Model
     protected $fillable = [
         'registration_id',
         'judging_criteria_id',
+        'round',
         'score',
         'notes',
         'scored_by',
     ];
 
     protected $casts = [
-        'score' => 'decimal:2',
+        'score' => 'float',
     ];
 
     public function registration(): BelongsTo

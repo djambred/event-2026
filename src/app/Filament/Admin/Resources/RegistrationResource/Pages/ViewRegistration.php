@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\RegistrationResource;
 use Filament\Actions;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -46,27 +47,63 @@ class ViewRegistration extends ViewRecord
                                 'rejected' => 'danger',
                                 default => 'gray',
                             }),
+                        TextEntry::make('stage')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'selection' => 'gray',
+                                'finalist' => 'success',
+                                'grandfinal' => 'warning',
+                                'eliminated' => 'danger',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'selection' => 'Seleksi',
+                                'finalist' => 'Finalist',
+                                'grandfinal' => 'Grand Final',
+                                'eliminated' => 'Eliminated',
+                                default => $state,
+                            }),
                         TextEntry::make('youtube_url')
                             ->label('YouTube URL')
                             ->url(fn ($record) => $record->youtube_url, true)
                             ->placeholder('—'),
+                        ViewEntry::make('youtube_embed')
+                            ->label('Video Preview')
+                            ->view('filament.infolists.youtube-embed')
+                            ->visible(fn ($record) => !empty($record->youtube_url))
+                            ->columnSpanFull(),
                     ])->columns(3),
 
                 Section::make('Score & Ranking')
                     ->schema([
                         TextEntry::make('final_score')
-                            ->label('Final Score')
+                            ->label('Selection Score')
                             ->size(TextEntry\TextEntrySize::Large)
                             ->weight(\Filament\Support\Enums\FontWeight::Bold)
                             ->color('primary')
                             ->placeholder('Not scored yet'),
                         TextEntry::make('rank')
-                            ->label('Rank')
+                            ->label('Selection Rank')
                             ->size(TextEntry\TextEntrySize::Large)
                             ->weight(\Filament\Support\Enums\FontWeight::Bold)
                             ->color('success')
                             ->formatStateUsing(fn ($state) => $state ? "#{$state}" : null)
                             ->placeholder('Not ranked yet'),
+                        TextEntry::make('grandfinal_score')
+                            ->label('Grand Final Score')
+                            ->size(TextEntry\TextEntrySize::Large)
+                            ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                            ->color('warning')
+                            ->placeholder('—')
+                            ->visible(fn ($record) => in_array($record->stage, ['finalist', 'grandfinal'])),
+                        TextEntry::make('grandfinal_rank')
+                            ->label('Grand Final Rank')
+                            ->size(TextEntry\TextEntrySize::Large)
+                            ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                            ->color('warning')
+                            ->formatStateUsing(fn ($state) => $state ? "#{$state}" : null)
+                            ->placeholder('—')
+                            ->visible(fn ($record) => in_array($record->stage, ['finalist', 'grandfinal'])),
                         TextEntry::make('participation_certificate')
                             ->label('Participation Cert')
                             ->formatStateUsing(fn ($state) => $state ? 'Generated' : null)

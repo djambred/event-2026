@@ -76,7 +76,7 @@
                     </div>
                     <div class="space-y-2">
                         <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Whatsapp Number</label>
-                        <input name="whatsapp" value="{{ old('whatsapp') }}" class="w-full bg-[#eff4ff] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#0D5DA6] text-[#141c27] transition-all" placeholder="+62 812..." type="tel" required/>
+                        <input name="whatsapp" value="{{ old('whatsapp') }}" class="w-full bg-[#eff4ff] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#0D5DA6] text-[#141c27] transition-all" placeholder="08xx atau +628xx" type="tel" required/>
                     </div>
                     <div class="md:col-span-2 space-y-2">
                         <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Email Address</label>
@@ -87,14 +87,17 @@
                         <input name="institution" value="{{ old('institution') }}" class="w-full bg-[#eff4ff] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#0D5DA6] text-[#141c27] transition-all" placeholder="e.g. SMAN 1 Jakarta" type="text" required/>
                     </div>
                 </div>
-                <div class="mt-8">
+                <div class="mt-8" x-data="{ fileName: '' }">
                     <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] block mb-4 ml-1">School Uniform Photo</label>
-                    <div class="border-2 border-dashed border-[#c0c7d2] rounded-2xl p-8 text-center bg-[#f8f9ff] hover:bg-[#eff4ff] transition-colors group cursor-pointer">
-                        <input class="hidden" id="photo-upload" name="school_uniform_photo" type="file" accept="image/*,.pdf"/>
+                    <div :class="fileName ? 'border-green-500 bg-green-50' : 'border-[#c0c7d2] bg-[#f8f9ff] hover:bg-[#eff4ff]'" class="border-2 border-dashed rounded-2xl p-8 text-center transition-colors group cursor-pointer">
+                        <input class="hidden" id="photo-upload" name="school_uniform_photo" type="file" accept="image/*,.pdf" @change="fileName = $event.target.files[0]?.name || ''"/>
                         <label class="cursor-pointer flex flex-col items-center" for="photo-upload">
-                            <span class="material-symbols-outlined text-4xl text-[#707882] mb-2 group-hover:text-[#003B73] transition-colors">upload_file</span>
-                            <p class="font-['Inter'] text-sm text-[#404750]"><span class="text-[#003B73] font-bold">Click to upload</span> or drag and drop</p>
-                            <p class="font-['Work_Sans'] text-xs text-[#707882] mt-1">JPG, PNG or PDF (Max. 5MB)</p>
+                            <span x-show="!fileName" class="material-symbols-outlined text-4xl text-[#707882] mb-2 group-hover:text-[#003B73] transition-colors">upload_file</span>
+                            <span x-show="fileName" class="material-symbols-outlined text-4xl text-green-600 mb-2">check_circle</span>
+                            <p x-show="!fileName" class="font-['Inter'] text-sm text-[#404750]"><span class="text-[#003B73] font-bold">Click to upload</span> or drag and drop</p>
+                            <p x-show="fileName" class="font-['Inter'] text-sm text-green-700 font-semibold" x-text="fileName"></p>
+                            <p x-show="!fileName" class="font-['Work_Sans'] text-xs text-[#707882] mt-1">JPG, PNG or PDF (Max. 5MB)</p>
+                            <p x-show="fileName" class="font-['Work_Sans'] text-xs text-green-600 mt-1">Click to change file</p>
                         </label>
                     </div>
                 </div>
@@ -153,11 +156,14 @@
                 </div>
                 <div class="space-y-2 mb-8">
                     <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Proof of Payment</label>
-                    <div class="relative group">
-                        <div class="w-full h-32 bg-[#dbe3f2] border-2 border-dashed border-[#c0c7d2] rounded-xl flex flex-col items-center justify-center transition-all group-hover:border-[#003B73]">
-                            <span class="material-symbols-outlined text-3xl text-[#707882] group-hover:text-[#003B73] mb-2">receipt_long</span>
-                            <p class="text-xs font-['Work_Sans'] text-[#404750]">Upload Receipt</p>
-                            <input name="payment_proof" class="absolute inset-0 opacity-0 cursor-pointer" type="file" accept="image/*,.pdf"/>
+                    <div class="relative group" x-data="{ fileName: '' }">
+                        <div :class="fileName ? 'border-green-500 bg-green-50' : 'bg-[#dbe3f2] border-[#c0c7d2] group-hover:border-[#003B73]'" class="w-full h-32 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all">
+                            <span x-show="!fileName" class="material-symbols-outlined text-3xl text-[#707882] group-hover:text-[#003B73] mb-2">receipt_long</span>
+                            <span x-show="fileName" class="material-symbols-outlined text-3xl text-green-600 mb-2">check_circle</span>
+                            <p x-show="!fileName" class="text-xs font-['Work_Sans'] text-[#404750]">Upload Receipt</p>
+                            <p x-show="fileName" class="text-xs font-['Work_Sans'] text-green-700 font-semibold px-4 text-center truncate max-w-full" x-text="fileName"></p>
+                            <p x-show="fileName" class="text-xs font-['Work_Sans'] text-green-600 mt-1">Click to change</p>
+                            <input name="payment_proof" class="absolute inset-0 opacity-0 cursor-pointer" type="file" accept="image/*,.pdf" @change="fileName = $event.target.files[0]?.name || ''"/>
                         </div>
                     </div>
                 </div>
@@ -167,6 +173,22 @@
                     <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">YouTube Video URL <span class="text-[#404750]/50 font-normal">(optional)</span></label>
                     <input name="youtube_url" value="{{ old('youtube_url') }}" class="w-full bg-[#dbe3f2] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#003B73] text-[#141c27] transition-all placeholder:text-[#707882]" placeholder="https://www.youtube.com/watch?v=..." type="url"/>
                     @error('youtube_url')
+                        <p class="text-red-500 text-xs ml-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Captcha --}}
+                <div class="space-y-2 mt-6 mb-8">
+                    <div class="flex items-center justify-between">
+                        <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Security Check: What is <span id="captcha-question" class="font-mono font-bold text-[#003B73]">{{ $captcha_question }}</span> ?</label>
+                        <button type="button" id="captcha-refresh-btn" class="inline-flex items-center gap-1 text-xs font-['Work_Sans'] font-semibold text-[#003B73] hover:text-[#0D5DA6] transition-colors">
+                            <span class="material-symbols-outlined text-base">refresh</span>
+                            Refresh
+                        </button>
+                    </div>
+                    <input name="captcha_answer" id="captcha-input" class="w-full bg-[#dbe3f2] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#003B73] text-[#141c27] transition-all placeholder:text-[#707882]" placeholder="Enter the answer" type="number" required/>
+                    <input type="hidden" name="captcha_token" id="captcha-token" value="{{ $captcha_token }}"/>
+                    @error('captcha_answer')
                         <p class="text-red-500 text-xs ml-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -193,3 +215,18 @@
     </form>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+(function() {
+    var pool = {!! $captcha_pool !!};
+    document.getElementById('captcha-refresh-btn').addEventListener('click', function() {
+        if (pool.length === 0) { alert('No more captcha available, please reload the page.'); return; }
+        var next = pool.shift();
+        document.getElementById('captcha-question').textContent = next.q;
+        document.getElementById('captcha-token').value = next.t;
+        document.getElementById('captcha-input').value = '';
+    });
+})();
+</script>
+@endpush

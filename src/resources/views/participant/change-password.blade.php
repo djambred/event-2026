@@ -36,7 +36,22 @@
                     <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Confirm New Password</label>
                     <input name="password_confirmation" class="w-full bg-[#eff4ff] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#0D5DA6] text-[#141c27] transition-all" placeholder="Confirm your new password" type="password" required/>
                 </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Security Check: What is <span id="captcha-question" class="font-mono font-bold text-[#003B73]">{{ $captcha_question }}</span> ?</label>
+                        <button type="button" id="captcha-refresh-btn" class="inline-flex items-center gap-1 text-xs font-['Work_Sans'] font-semibold text-[#003B73] hover:text-[#0D5DA6] transition-colors">
+                            <span class="material-symbols-outlined text-base">refresh</span>
+                            Refresh
+                        </button>
+                    </div>
+                    <input name="captcha_answer" id="captcha-input" class="w-full bg-[#eff4ff] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#0D5DA6] text-[#141c27] transition-all" placeholder="Enter the answer" type="number" required/>
+                    <input type="hidden" name="captcha_token" id="captcha-token" value="{{ $captcha_token }}"/>
+                    @error('captcha_answer')
+                        <p class="text-red-500 text-xs ml-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
+            <div class="mt-6"></div>
             <button class="w-full hero-gradient text-white py-4 rounded-xl font-['Plus_Jakarta_Sans'] font-bold text-lg shadow-lg shadow-[#003B73]/20 hover:scale-[1.02] transition-all active:scale-[0.98]" type="submit">
                 Set New Password
             </button>
@@ -44,3 +59,18 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+(function() {
+    var pool = {!! $captcha_pool !!};
+    document.getElementById('captcha-refresh-btn').addEventListener('click', function() {
+        if (pool.length === 0) { alert('No more captcha available, please reload the page.'); return; }
+        var next = pool.shift();
+        document.getElementById('captcha-question').textContent = next.q;
+        document.getElementById('captcha-token').value = next.t;
+        document.getElementById('captcha-input').value = '';
+    });
+})();
+</script>
+@endpush

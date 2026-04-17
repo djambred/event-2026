@@ -2,14 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\EventSetting;
 use App\Models\Registration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 
 class ParticipantController extends Controller
 {
+    private static function signCaptcha(int $answer): string
+    {
+        return hash_hmac('sha256', (string) $answer, config('app.key'));
+    }
+
+    private function generateCaptcha(): array
+    {
+        $pool = [];
+        for ($i = 0; $i < 10; $i++) {
+            $a = rand(1, 10);
+            $b = rand(1, 10);
+            $answer = $a + $b;
+            $pool[] = [
+                'q' => "{$a} + {$b}",
+                't' => self::signCaptcha($answer),
+            ];
+        }
+
+        return [
+            'captcha_question' => $pool[0]['q'],
+            'captcha_token' => $pool[0]['t'],
+            'captcha_pool' => json_encode(array_slice($pool, 1)),
+        ];
+    }
+
+    private function verifyCaptcha(Request $request): bool
+    {
+        $answer = (int) $request->input('captcha_answer');
+        $token = (string) $request->input('captcha_token');
+
+        return hash_equals(self::signCaptcha($answer), $token);
+    }
+
     public function loginForm()
     {
         if (session('participant_token')) {
@@ -17,8 +50,9 @@ class ParticipantController extends Controller
         }
 
         $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $captcha = $this->generateCaptcha();
 
-        return view('participant.lookup', compact('settings'));
+        return view('participant.lookup', compact('settings') + $captcha);
     }
 
     public function login(Request $request)
@@ -26,7 +60,13 @@ class ParticipantController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
+            'captcha_answer' => 'required|integer',
+            'captcha_token' => 'required|string',
         ]);
+
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha_answer' => 'Captcha answer is incorrect.'])->withInput(['email' => $request->email]);
+        }
 
         $registration = Registration::where('email', $request->email)->first();
 
@@ -52,8 +92,9 @@ class ParticipantController extends Controller
 
         $registration = Registration::where('access_token', $token)->firstOrFail();
         $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $captcha = $this->generateCaptcha();
 
-        return view('participant.change-password', compact('settings', 'token'));
+        return view('participant.change-password', compact('settings', 'token') + $captcha);
     }
 
     public function updatePassword(Request $request)
@@ -61,7 +102,13 @@ class ParticipantController extends Controller
         $request->validate([
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
+            'captcha_answer' => 'required|integer',
+            'captcha_token' => 'required|string',
         ]);
+
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha_answer' => 'Captcha answer is incorrect.'])->withInput();
+        }
 
         $registration = Registration::where('access_token', $request->token)->firstOrFail();
 
@@ -97,7 +144,17 @@ class ParticipantController extends Controller
 
         $settings = EventSetting::all()->pluck('value', 'key')->toArray();
 
-        return view('participant.portal', compact('registration', 'settings'));
+        $announcements = Announcement::where('competition_category_id', $registration->competition_category_id)
+            ->where('is_published', true)
+            ->latest('published_at')
+            ->get();
+
+        $hasParticipationCert = (bool) $registration->competitionCategory->getActiveCertificateTemplate('participation');
+        $hasWinnerCert = $registration->rank
+            ? (bool) $registration->competitionCategory->getActiveCertificateTemplate('winner')
+            : false;
+
+        return view('participant.portal', compact('registration', 'settings', 'announcements', 'hasParticipationCert', 'hasWinnerCert'));
     }
 
     public function updateYoutube(Request $request)
@@ -124,22 +181,40 @@ class ParticipantController extends Controller
             return redirect()->route('participant.login');
         }
 
-        $registration = Registration::where('access_token', $token)->firstOrFail();
+        $registration = Registration::where('access_token', $token)
+            ->with('competitionCategory')
+            ->firstOrFail();
 
         $type = $request->query('type', 'participation');
-        $certFile = match ($type) {
-            'winner' => $registration->winner_certificate,
-            default => $registration->participation_certificate ?? $registration->certificate_file,
-        };
 
-        if (!$certFile || !Storage::disk('public')->exists($certFile)) {
+        if (!in_array($type, ['participation', 'winner'])) {
+            abort(404);
+        }
+
+        // Check if active template exists for this category+type
+        $hasTemplate = (bool) $registration->competitionCategory->getActiveCertificateTemplate($type);
+
+        if (!$hasTemplate) {
             abort(404, 'Certificate not available yet.');
         }
 
-        return Storage::disk('public')->download(
-            $certFile,
-            'certificate-' . $type . '-' . \Illuminate\Support\Str::slug($registration->full_name) . '.png'
-        );
+        if ($type === 'winner' && !$registration->rank) {
+            abort(404, 'Certificate not available yet.');
+        }
+
+        try {
+            $service = new \App\Services\CertificateService();
+            $pdfContent = $service->generatePdf($registration, $type);
+        } catch (\RuntimeException $e) {
+            abort(404, $e->getMessage());
+        }
+
+        $filename = 'certificate-' . $type . '-' . \Illuminate\Support\Str::slug($registration->full_name) . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     public function logout()

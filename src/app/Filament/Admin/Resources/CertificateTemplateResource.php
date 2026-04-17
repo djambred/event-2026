@@ -4,11 +4,13 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\CertificateTemplateResource\Pages;
 use App\Models\CertificateTemplate;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 
 class CertificateTemplateResource extends Resource
 {
@@ -49,17 +51,53 @@ class CertificateTemplateResource extends Resource
                         Forms\Components\FileUpload::make('background_image')
                             ->label('Certificate Background Design')
                             ->image()
-                            ->required()
                             ->directory('certificates/templates')
                             ->imagePreviewHeight('300')
-                            ->columnSpanFull(),
+                            ->helperText('Optional. Leave empty to use the built-in HTML certificate design.')
+                            ->columnSpanFull()
+                            ->live(),
 
                         Forms\Components\Toggle::make('is_active')
                             ->default(true),
                     ])->columns(2),
 
+                Forms\Components\Section::make('Text Style')
+                    ->description('Configure font size and color for the text on the certificate')
+                    ->visible(fn (Forms\Get $get): bool => empty($get('background_image')))
+                    ->schema([
+                        Forms\Components\TextInput::make('name_font_size')
+                            ->label('Name Font Size (px)')
+                            ->numeric()
+                            ->default(36),
+
+                        Forms\Components\ColorPicker::make('name_color')
+                            ->label('Name Color')
+                            ->default('#001d34'),
+
+                        Forms\Components\TextInput::make('category_font_size')
+                            ->label('Category Font Size (px)')
+                            ->numeric()
+                            ->default(18),
+
+                        Forms\Components\ColorPicker::make('category_color')
+                            ->label('Category Color')
+                            ->default('#0574b9'),
+
+                        Forms\Components\TextInput::make('rank_font_size')
+                            ->label('Rank Font Size (px)')
+                            ->numeric()
+                            ->default(28)
+                            ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner'),
+
+                        Forms\Components\ColorPicker::make('rank_color')
+                            ->label('Rank Color')
+                            ->default('#9f4200')
+                            ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner'),
+                    ])->columns(4),
+
                 Forms\Components\Section::make('Name Text Position & Style')
                     ->description('Configure where participant name appears on the certificate (in % from top-left)')
+                    ->visible(fn (Forms\Get $get): bool => !empty($get('background_image')))
                     ->schema([
                         Forms\Components\TextInput::make('name_x')
                             ->label('X Position (%)')
@@ -87,6 +125,7 @@ class CertificateTemplateResource extends Resource
 
                 Forms\Components\Section::make('Category Text Position & Style')
                     ->description('Configure where competition category appears on the certificate')
+                    ->visible(fn (Forms\Get $get): bool => !empty($get('background_image')))
                     ->schema([
                         Forms\Components\TextInput::make('category_x')
                             ->label('X Position (%)')
@@ -114,7 +153,7 @@ class CertificateTemplateResource extends Resource
 
                 Forms\Components\Section::make('Rank Text Position & Style (Winner Only)')
                     ->description('Configure where the rank/placement text appears on winner certificates')
-                    ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner')
+                    ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner' && !empty($get('background_image')))
                     ->schema([
                         Forms\Components\TextInput::make('rank_x')
                             ->label('X Position (%)')
@@ -170,7 +209,8 @@ class CertificateTemplateResource extends Resource
 
                 Tables\Columns\ImageColumn::make('background_image')
                     ->label('Preview')
-                    ->height(60),
+                    ->height(60)
+                    ->placeholder('HTML Default'),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
@@ -189,6 +229,54 @@ class CertificateTemplateResource extends Resource
                     ->modalHeading('Certificate Template Preview')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close'),
+                Tables\Actions\Action::make('downloadSample')
+                    ->label('Sample PDF')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function (CertificateTemplate $record) {
+                        $backgroundBase64 = null;
+
+                        if ($record->background_image) {
+                            $backgroundPath = Storage::disk('public')->path($record->background_image);
+                            if (file_exists($backgroundPath)) {
+                                $mime = mime_content_type($backgroundPath);
+                                $base64 = base64_encode(file_get_contents($backgroundPath));
+                                $backgroundBase64 = "data:{$mime};base64,{$base64}";
+                            }
+                        }
+
+                        $sampleName = 'John Doe';
+                        $sampleCategory = $record->competitionCategory?->name ?? 'Storytelling';
+                        $sampleRank = $record->type === 'winner' ? '1st Place - Champion' : '';
+
+                        // Seal image
+                        $sealPath = public_path('seal.png');
+                        $sealBase64 = '';
+                        if (file_exists($sealPath)) {
+                            $sealMime = mime_content_type($sealPath);
+                            $sealBase64 = 'data:' . $sealMime . ';base64,' . base64_encode(file_get_contents($sealPath));
+                        }
+
+                        $html = view('certificates.template', [
+                            'template' => $record,
+                            'backgroundBase64' => $backgroundBase64,
+                            'sealBase64' => $sealBase64,
+                            'participantName' => $sampleName,
+                            'categoryName' => $sampleCategory,
+                            'rankText' => $sampleRank,
+                        ])->render();
+
+                        $pdf = Pdf::loadHTML($html)
+                            ->setPaper('a4', 'landscape')
+                            ->setOption('isRemoteEnabled', true)
+                            ->setOption('dpi', 150);
+
+                        return response()->streamDownload(
+                            fn () => print($pdf->output()),
+                            'sample-' . \Illuminate\Support\Str::slug($record->name) . '.pdf',
+                            ['Content-Type' => 'application/pdf']
+                        );
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

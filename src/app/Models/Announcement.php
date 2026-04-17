@@ -9,8 +9,10 @@ class Announcement extends Model
 {
     protected $fillable = [
         'competition_category_id',
+        'type',
         'title',
         'description',
+        'zoom_url',
         'is_published',
         'published_at',
         'winners_count',

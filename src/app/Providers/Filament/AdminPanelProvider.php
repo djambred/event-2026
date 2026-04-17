@@ -28,8 +28,8 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('admin')
-            ->path('admin')
+            ->id('ueu')
+            ->path('ueu')
             ->spa()
             ->login()
             ->passwordReset()
@@ -49,7 +49,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverClusters(in: app_path('Filament/Admin/Clusters'), for: 'App\\Filament\\Admin\\Clusters')
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
-                \Awcodes\Overlook\Widgets\OverlookWidget::class,
             ])
             ->navigationGroups([
                 NavigationGroup::make()
@@ -92,10 +91,6 @@ class AdminPanelProvider extends PanelProvider
                     ->enabledOn([
                         'auth.login',
                         'auth.password',
-                    ]),
-                \Awcodes\Overlook\OverlookPlugin::make()
-                    ->includes([
-                        \App\Filament\Admin\Resources\UserResource::class,
                     ]),
                 \Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin::make()
                     ->slug('my-profile')

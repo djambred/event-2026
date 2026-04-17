@@ -24,6 +24,9 @@ class StatsOverview extends BaseWidget
         $international = Registration::where('registration_type', 'international')->count();
         $scored = Registration::whereNotNull('final_score')->count();
         $categories = CompetitionCategory::where('is_active', true)->count();
+        $finalists = Registration::where('stage', 'finalist')->count();
+        $eliminated = Registration::where('stage', 'eliminated')->count();
+        $grandfinalScored = Registration::where('stage', 'finalist')->whereNotNull('grandfinal_score')->count();
 
         return [
             Stat::make('Total Registrations', $total)
@@ -51,6 +54,21 @@ class StatsOverview extends BaseWidget
                 ->description($scored . ' of ' . $confirmed . ' confirmed')
                 ->descriptionIcon('heroicon-m-academic-cap')
                 ->color('info'),
+
+            Stat::make('Finalists', $finalists)
+                ->description('Lolos ke Grand Final')
+                ->descriptionIcon('heroicon-m-trophy')
+                ->color('success'),
+
+            Stat::make('GF Scored', $grandfinalScored)
+                ->description($grandfinalScored . ' of ' . $finalists . ' finalists')
+                ->descriptionIcon('heroicon-m-star')
+                ->color('warning'),
+
+            Stat::make('Eliminated', $eliminated)
+                ->description('Tidak lolos seleksi')
+                ->descriptionIcon('heroicon-m-x-mark')
+                ->color('danger'),
 
             Stat::make('Active Categories', $categories)
                 ->description('Competition categories')

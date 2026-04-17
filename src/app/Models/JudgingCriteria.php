@@ -19,7 +19,7 @@ class JudgingCriteria extends Model
     ];
 
     protected $casts = [
-        'weight' => 'decimal:2',
+        'weight' => 'float',
         'sort_order' => 'integer',
     ];
 

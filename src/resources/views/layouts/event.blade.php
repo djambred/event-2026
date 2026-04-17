@@ -128,6 +128,20 @@
         </div>
     </footer>
 
+    @if(session('form_expired'))
+    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" x-transition
+         class="fixed top-24 right-6 z-[9999] bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-sm">
+        <span class="material-symbols-outlined text-2xl">error</span>
+        <div>
+            <p class="font-['Plus_Jakarta_Sans'] font-bold text-sm">Form Expired</p>
+            <p class="font-['Inter'] text-xs opacity-90">{{ session('form_expired') }}</p>
+        </div>
+        <button @click="show = false" class="ml-auto text-white/80 hover:text-white">
+            <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+    </div>
+    @endif
+
     @stack('scripts')
 </body>
 </html>

@@ -72,7 +72,9 @@ class RegistrationResource extends Resource
 
                         Forms\Components\TextInput::make('whatsapp')
                             ->required()
-                            ->maxLength(255),
+                            ->tel()
+                            ->placeholder('+628xxxxxxxxxx')
+                            ->maxLength(30),
 
                         Forms\Components\TextInput::make('institution')
                             ->required()
@@ -169,6 +171,24 @@ class RegistrationResource extends Resource
                     })
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('stage')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'selection' => 'gray',
+                        'finalist' => 'success',
+                        'grandfinal' => 'warning',
+                        'eliminated' => 'danger',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'selection' => 'Seleksi',
+                        'finalist' => 'Finalist',
+                        'grandfinal' => 'Grand Final',
+                        'eliminated' => 'Eliminated',
+                        default => $state,
+                    })
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('final_score')
                     ->label('Score')
                     ->sortable()
@@ -178,6 +198,18 @@ class RegistrationResource extends Resource
                 Tables\Columns\TextColumn::make('rank')
                     ->sortable()
                     ->toggleable()
+                    ->placeholder('—'),
+
+                Tables\Columns\TextColumn::make('grandfinal_score')
+                    ->label('GF Score')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->placeholder('—'),
+
+                Tables\Columns\TextColumn::make('grandfinal_rank')
+                    ->label('GF Rank')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('youtube_url')
@@ -233,6 +265,14 @@ class RegistrationResource extends Resource
                 Tables\Filters\SelectFilter::make('competition_category_id')
                     ->relationship('competitionCategory', 'name')
                     ->label('Category'),
+
+                Tables\Filters\SelectFilter::make('stage')
+                    ->options([
+                        'selection' => 'Seleksi',
+                        'finalist' => 'Finalist',
+                        'grandfinal' => 'Grand Final',
+                        'eliminated' => 'Eliminated',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\Action::make('confirm')

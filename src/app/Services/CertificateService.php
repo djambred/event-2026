@@ -2,13 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\CertificateTemplate;
 use App\Models\Registration;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 
 class CertificateService
 {
-    public function generate(Registration $registration, string $type = 'participation'): string
+    /**
+     * Generate a certificate PDF on-the-fly and return the binary content.
+     */
+    public function generatePdf(Registration $registration, string $type = 'participation'): string
     {
         $template = $registration->competitionCategory->getActiveCertificateTemplate($type);
 
@@ -16,86 +19,60 @@ class CertificateService
             throw new \RuntimeException("No active {$type} certificate template found for this category.");
         }
 
-        $backgroundPath = Storage::disk('public')->path($template->background_image);
+        $backgroundBase64 = null;
 
-        if (!file_exists($backgroundPath)) {
-            throw new \RuntimeException('Certificate template background image not found.');
+        if ($template->background_image) {
+            $backgroundPath = Storage::disk('public')->path($template->background_image);
+
+            if (file_exists($backgroundPath)) {
+                $mime = mime_content_type($backgroundPath);
+                $base64 = base64_encode(file_get_contents($backgroundPath));
+                $backgroundBase64 = "data:{$mime};base64,{$base64}";
+            }
         }
 
-        $image = $this->loadImage($backgroundPath);
-
-        if (!$image) {
-            throw new \RuntimeException('Failed to load certificate template image.');
-        }
-
-        $imgWidth = imagesx($image);
-        $imgHeight = imagesy($image);
-
-        // Allocate colors
-        $nameColor = $this->hexToColor($image, $template->name_color ?? '#000000');
-        $categoryColor = $this->hexToColor($image, $template->category_color ?? '#000000');
-
-        $fontPath = resource_path('fonts/PlusJakartaSans-Bold.ttf');
-        $hasTtf = file_exists($fontPath);
-
-        // Convert % positions to pixel coordinates
-        $namePixelX = intval($imgWidth * $template->name_x / 100);
-        $namePixelY = intval($imgHeight * $template->name_y / 100);
-        $catPixelX = intval($imgWidth * $template->category_x / 100);
-        $catPixelY = intval($imgHeight * $template->category_y / 100);
-
-        // Add participant name (centered horizontally at X%)
-        $this->addCenteredText(
-            $image,
-            $registration->full_name,
-            $namePixelX,
-            $namePixelY,
-            $template->name_font_size ?? 32,
-            $nameColor,
-            $fontPath,
-            $hasTtf
-        );
-
-        // Add category name (centered horizontally at X%)
-        $this->addCenteredText(
-            $image,
-            $registration->competitionCategory->name,
-            $catPixelX,
-            $catPixelY,
-            $template->category_font_size ?? 24,
-            $categoryColor,
-            $fontPath,
-            $hasTtf
-        );
-
-        // Add rank text for winner certificates
+        $rankText = '';
         if ($type === 'winner' && $registration->rank) {
-            $rankColor = $this->hexToColor($image, $template->rank_color ?? '#E8A317');
             $rankText = $this->getRankLabel($registration->rank);
-            $rankPixelX = intval($imgWidth * ($template->rank_x ?? 50) / 100);
-            $rankPixelY = intval($imgHeight * ($template->rank_y ?? 70) / 100);
-
-            $this->addCenteredText(
-                $image,
-                $rankText,
-                $rankPixelX,
-                $rankPixelY,
-                $template->rank_font_size ?? 28,
-                $rankColor,
-                $fontPath,
-                $hasTtf
-            );
         }
 
-        // Save certificate
+        // Seal image
+        $sealPath = public_path('seal.png');
+        $sealBase64 = '';
+        if (file_exists($sealPath)) {
+            $sealMime = mime_content_type($sealPath);
+            $sealBase64 = 'data:' . $sealMime . ';base64,' . base64_encode(file_get_contents($sealPath));
+        }
+
+        $html = view('certificates.template', [
+            'template' => $template,
+            'backgroundBase64' => $backgroundBase64,
+            'sealBase64' => $sealBase64,
+            'participantName' => $registration->full_name,
+            'categoryName' => $registration->competitionCategory->name,
+            'rankText' => $rankText,
+        ])->render();
+
+        $pdf = Pdf::loadHTML($html)
+            ->setPaper('a4', 'landscape')
+            ->setOption('isRemoteEnabled', true)
+            ->setOption('dpi', 150);
+
+        return $pdf->output();
+    }
+
+    /**
+     * Generate and save certificate to storage (legacy, for pre-generating).
+     */
+    public function generate(Registration $registration, string $type = 'participation'): string
+    {
+        $pdfContent = $this->generatePdf($registration, $type);
+
         $directory = 'certificates';
         Storage::disk('public')->makeDirectory($directory);
 
-        $filename = $directory . '/cert-' . $type . '-' . $registration->id . '-' . time() . '.png';
-        $outputPath = Storage::disk('public')->path($filename);
-
-        imagepng($image, $outputPath);
-        imagedestroy($image);
+        $filename = $directory . '/cert-' . $type . '-' . $registration->id . '-' . time() . '.pdf';
+        Storage::disk('public')->put($filename, $pdfContent);
 
         return $filename;
     }
@@ -108,54 +85,5 @@ class CertificateService
             3 => '3rd Place',
             default => "Rank #{$rank}",
         };
-    }
-
-    private function loadImage(string $path): \GdImage|false
-    {
-        $info = getimagesize($path);
-
-        if (!$info) {
-            return false;
-        }
-
-        return match ($info[2]) {
-            IMAGETYPE_PNG => imagecreatefrompng($path),
-            IMAGETYPE_JPEG => imagecreatefromjpeg($path),
-            default => false,
-        };
-    }
-
-    private function hexToColor(\GdImage $image, string $hex): int
-    {
-        $hex = ltrim($hex, '#');
-        $r = hexdec(substr($hex, 0, 2));
-        $g = hexdec(substr($hex, 2, 2));
-        $b = hexdec(substr($hex, 4, 2));
-
-        return imagecolorallocate($image, $r, $g, $b);
-    }
-
-    private function addCenteredText(
-        \GdImage $image,
-        string $text,
-        int $centerX,
-        int $y,
-        int $fontSize,
-        int $color,
-        string $fontPath,
-        bool $hasTtf
-    ): void {
-        if ($hasTtf) {
-            // Calculate text bounding box to center it
-            $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
-            $textWidth = abs($bbox[2] - $bbox[0]);
-            $x = $centerX - intval($textWidth / 2);
-            imagettftext($image, $fontSize, 0, $x, $y, $color, $fontPath, $text);
-        } else {
-            $builtinFont = min(5, max(1, intval($fontSize / 8)));
-            $textWidth = imagefontwidth($builtinFont) * strlen($text);
-            $x = $centerX - intval($textWidth / 2);
-            imagestring($image, $builtinFont, $x, $y, $text, $color);
-        }
     }
 }

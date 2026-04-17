@@ -23,11 +23,14 @@ class Registration extends Model
         'payment_proof',
         'youtube_url',
         'status',
+        'stage',
         'access_token',
         'password',
         'password_changed',
         'final_score',
         'rank',
+        'grandfinal_score',
+        'grandfinal_rank',
         'certificate_file',
         'participation_certificate',
         'winner_certificate',
@@ -38,10 +41,30 @@ class Registration extends Model
     ];
 
     protected $casts = [
-        'final_score' => 'decimal:2',
+        'final_score' => 'float',
+        'grandfinal_score' => 'float',
         'rank' => 'integer',
+        'grandfinal_rank' => 'integer',
         'password_changed' => 'boolean',
     ];
+
+    /**
+     * Normalize WhatsApp number: strip spaces/dashes, convert 08xx to +628xx.
+     */
+    public function setWhatsappAttribute($value): void
+    {
+        $number = preg_replace('/[\s\-\(\)]+/', '', trim($value));
+
+        if (str_starts_with($number, '08')) {
+            $number = '+62' . substr($number, 1);
+        } elseif (str_starts_with($number, '62') && !str_starts_with($number, '+')) {
+            $number = '+' . $number;
+        } elseif (str_starts_with($number, '8') && strlen($number) >= 10 && strlen($number) <= 13) {
+            $number = '+62' . $number;
+        }
+
+        $this->attributes['whatsapp'] = $number;
+    }
 
     protected static function booted(): void
     {
@@ -79,19 +102,27 @@ class Registration extends Model
      * Calculate final score. Score range: 0-10, Weight: percentage (sums to 100).
      * Formula: sum(score × weight / 100) for each criteria.
      */
-    public function calculateFinalScore(): float
+    public function calculateFinalScore(string $round = 'selection'): float
     {
         $criterias = $this->competitionCategory->judgingCriterias;
         $totalWeightedScore = 0;
 
         foreach ($criterias as $criteria) {
-            $score = $this->scores()->where('judging_criteria_id', $criteria->id)->first();
+            $score = $this->scores()
+                ->where('judging_criteria_id', $criteria->id)
+                ->where('round', $round)
+                ->first();
             if ($score) {
                 $totalWeightedScore += ($score->score * $criteria->weight / 100);
             }
         }
 
         return round($totalWeightedScore, 2);
+    }
+
+    public function calculateGrandfinalScore(): float
+    {
+        return $this->calculateFinalScore('grandfinal');
     }
 
     public function getPortalUrl(): string

@@ -35,21 +35,45 @@ class AnnouncementResource extends Resource
                             ->preload()
                             ->live(),
 
+                        Forms\Components\Select::make('type')
+                            ->options([
+                                'info' => 'Info / Pengumuman',
+                                'zoom' => 'Link Zoom Meeting',
+                                'winner' => 'Winner Announcement',
+                            ])
+                            ->default('info')
+                            ->required()
+                            ->live(),
+
                         Forms\Components\TextInput::make('title')
                             ->required()
                             ->maxLength(255)
-                            ->placeholder('e.g. Winner Announcement - English Storytelling'),
+                            ->placeholder(fn (Forms\Get $get) => match ($get('type')) {
+                                'zoom' => 'e.g. Zoom Seleksi - English Storytelling',
+                                'winner' => 'e.g. Winner Announcement - English Storytelling',
+                                default => 'e.g. Jadwal Seleksi Tahap 1',
+                            }),
 
                         Forms\Components\Textarea::make('description')
-                            ->rows(4)
-                            ->placeholder('Congratulations to all winners! Here are the results...'),
+                            ->rows(3)
+                            ->placeholder('Deskripsi pengumuman...'),
+
+                        Forms\Components\TextInput::make('zoom_url')
+                            ->label('Zoom Meeting URL')
+                            ->url()
+                            ->maxLength(500)
+                            ->placeholder('https://zoom.us/j/...')
+                            ->columnSpanFull()
+                            ->visible(fn (Forms\Get $get): bool => $get('type') === 'zoom')
+                            ->required(fn (Forms\Get $get): bool => $get('type') === 'zoom'),
 
                         Forms\Components\TextInput::make('winners_count')
                             ->label('Number of Winners to Display')
                             ->numeric()
                             ->default(3)
                             ->minValue(1)
-                            ->maxValue(10),
+                            ->maxValue(10)
+                            ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner'),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Publishing')
@@ -76,6 +100,19 @@ class AnnouncementResource extends Resource
                     ->sortable()
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'zoom' => 'info',
+                        'winner' => 'success',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'zoom' => 'Zoom',
+                        'winner' => 'Winner',
+                        default => 'Info',
+                    }),
+
                 Tables\Columns\TextColumn::make('title')
                     ->searchable()
                     ->sortable()
@@ -83,7 +120,8 @@ class AnnouncementResource extends Resource
 
                 Tables\Columns\TextColumn::make('winners_count')
                     ->label('Winners')
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->placeholder('-'),
 
                 Tables\Columns\IconColumn::make('is_published')
                     ->label('Published')
