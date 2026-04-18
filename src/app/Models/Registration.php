@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class Registration extends Model
@@ -66,14 +65,19 @@ class Registration extends Model
         $this->attributes['whatsapp'] = $number;
     }
 
+    /**
+     * Generate a random register key in the format REG-XXXXXXXX.
+     */
+    public static function generateRegisterKey(): string
+    {
+        return 'REG-' . strtoupper(Str::random(8));
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Registration $registration) {
             if (empty($registration->access_token)) {
                 $registration->access_token = Str::random(32);
-            }
-            if (empty($registration->password)) {
-                $registration->password = Hash::make('ueuevent2026');
             }
         });
     }

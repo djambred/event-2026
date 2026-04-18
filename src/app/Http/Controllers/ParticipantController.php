@@ -71,14 +71,10 @@ class ParticipantController extends Controller
         $registration = Registration::where('email', $request->email)->first();
 
         if (!$registration || !Hash::check($request->password, $registration->password)) {
-            return back()->with('error', 'Invalid email or password.')->withInput(['email' => $request->email]);
+            return back()->with('error', 'Invalid email or Register Key.')->withInput(['email' => $request->email]);
         }
 
         session(['participant_token' => $registration->access_token]);
-
-        if (!$registration->password_changed) {
-            return redirect()->route('participant.password.change');
-        }
 
         return redirect()->route('participant.portal');
     }
@@ -137,10 +133,6 @@ class ParticipantController extends Controller
                 'scores.judgingCriteria',
             ])
             ->firstOrFail();
-
-        if (!$registration->password_changed) {
-            return redirect()->route('participant.password.change');
-        }
 
         $settings = EventSetting::all()->pluck('value', 'key')->toArray();
 

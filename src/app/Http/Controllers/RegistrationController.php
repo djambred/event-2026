@@ -6,6 +6,7 @@ use App\Models\CompetitionCategory;
 use App\Models\EventSetting;
 use App\Models\Registration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class RegistrationController extends Controller
 {
@@ -95,10 +96,16 @@ class RegistrationController extends Controller
                 ->store('registrations/payment-proofs', 'public');
         }
 
-        Registration::create($validated);
+        $registerKey = Registration::generateRegisterKey();
+        $validated['password'] = Hash::make($registerKey);
+        $validated['password_changed'] = true;
 
-        return redirect()->route('registration.national')
-            ->with('success', 'Registration submitted successfully! Silahkan login dengan email ' . $validated['email'] . ' dan gunakan password default ueuevent2026');
+        $registration = Registration::create($validated);
+
+        session(['participant_token' => $registration->access_token]);
+
+        return redirect()->route('participant.portal')
+            ->with('register_key', $registerKey);
     }
 
     public function storeInternational(Request $request)
@@ -132,9 +139,15 @@ class RegistrationController extends Controller
                 ->store('registrations/formal-photos', 'public');
         }
 
-        Registration::create($validated);
+        $registerKey = Registration::generateRegisterKey();
+        $validated['password'] = Hash::make($registerKey);
+        $validated['password_changed'] = true;
 
-        return redirect()->route('registration.international')
-            ->with('success', 'Registration submitted successfully! Silahkan login dengan email ' . $validated['email'] . ' dan gunakan password default ueuevent2026');
+        $registration = Registration::create($validated);
+
+        session(['participant_token' => $registration->access_token]);
+
+        return redirect()->route('participant.portal')
+            ->with('register_key', $registerKey);
     }
 }

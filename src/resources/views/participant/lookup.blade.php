@@ -11,7 +11,7 @@
                 Participant Portal
             </div>
             <h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl text-[#141c27] mb-3">Login to Portal</h1>
-            <p class="font-['Inter'] text-[#404750]">Enter your registered email and password to access your portal.</p>
+            <p class="font-['Inter'] text-[#404750]">Enter your registered email and Register Key to access your portal.</p>
         </div>
 
         @if(session('error'))
@@ -39,8 +39,8 @@
                     @enderror
                 </div>
                 <div class="space-y-2">
-                    <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Password</label>
-                    <input name="password" class="w-full bg-[#eff4ff] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#0D5DA6] text-[#141c27] transition-all" placeholder="Enter your password" type="password" required/>
+                    <label class="font-['Work_Sans'] text-sm font-semibold text-[#404750] ml-1">Register Key</label>
+                    <input name="password" class="w-full bg-[#eff4ff] border-none rounded-xl p-4 focus:ring-2 focus:ring-[#0D5DA6] text-[#141c27] transition-all font-mono tracking-wider" placeholder="REG-XXXXXXXX" type="text" required/>
                     @error('password')
                         <p class="text-red-500 text-xs ml-1">{{ $message }}</p>
                     @enderror
@@ -67,10 +67,10 @@
         </form>
 
         <p class="text-center text-xs text-[#404750] mt-6 font-['Inter']">
-            Default password: <span class="font-mono font-semibold text-[#003B73]">ueuevent2026</span>
+            Use the <span class="font-mono font-semibold text-[#003B73]">Register Key</span> you received after registration to login.
         </p>
         <p class="text-center text-xs text-[#404750] mt-2 font-['Inter']">
-            Can't find your registration? <a href="mailto:{{ $settings['contact_email'] ?? 'lbk@esaunggul.ac.id' }}" class="text-[#003B73] font-semibold hover:underline">Contact us</a>
+            Lost your Register Key? <a href="mailto:{{ $settings['contact_email'] ?? 'lbk@esaunggul.ac.id' }}" class="text-[#003B73] font-semibold hover:underline">Contact us</a>
         </p>
     </div>
 </section>

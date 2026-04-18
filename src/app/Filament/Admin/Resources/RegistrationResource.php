@@ -378,20 +378,23 @@ class RegistrationResource extends Resource
                             ->send();
                     }),
 
-                Tables\Actions\Action::make('resetPassword')
-                    ->label('Reset Password')
+                Tables\Actions\Action::make('resetRegisterKey')
+                    ->label('Reset Register Key')
                     ->icon('heroicon-o-key')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->modalDescription('This will reset the participant\'s password to the default (ueuevent2026) and force them to change it on next login.')
+                    ->modalDescription('This will generate a new Register Key for the participant. The new key will be shown once — make sure to copy it.')
                     ->action(function (Registration $record) {
+                        $newKey = Registration::generateRegisterKey();
                         $record->update([
-                            'password' => Hash::make('ueuevent2026'),
-                            'password_changed' => false,
+                            'password' => Hash::make($newKey),
+                            'password_changed' => true,
                         ]);
                         Notification::make()
-                            ->title('Password reset to default')
+                            ->title('New Register Key Generated')
+                            ->body($newKey)
                             ->success()
+                            ->persistent()
                             ->send();
                     }),
 

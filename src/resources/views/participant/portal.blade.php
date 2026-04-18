@@ -3,6 +3,35 @@
 @section('title', 'Participant Portal - ' . ($settings['site_title'] ?? 'Esa Unggul International Event 2026'))
 
 @section('content')
+{{-- Register Key Toast --}}
+@if(session('register_key'))
+<div x-data="{ show: true, copied: false }" x-show="show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center" @click.outside="show = false">
+        <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-green-600 text-3xl">check_circle</span>
+        </div>
+        <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-2xl text-[#141c27] mb-2">Registrasi Berhasil!</h2>
+        <p class="font-['Inter'] text-[#404750] text-sm mb-6">Simpan <strong>Register Key</strong> berikut untuk login ke portal. Pastikan kamu menyimpannya di tempat yang aman.</p>
+        <div class="relative bg-[#eff4ff] rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
+            <span id="register-key-text" class="font-mono font-bold text-xl text-[#003B73] tracking-wider select-all">{{ session('register_key') }}</span>
+            <button type="button" @click="navigator.clipboard.writeText('{{ session('register_key') }}'); copied = true; setTimeout(() => copied = false, 2000)" class="flex-shrink-0 inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all" :class="copied ? 'bg-green-500 text-white' : 'bg-[#003B73] text-white hover:bg-[#0D5DA6]'">
+                <span x-show="!copied" class="material-symbols-outlined text-base">content_copy</span>
+                <span x-show="!copied">Copy</span>
+                <span x-show="copied" class="material-symbols-outlined text-base">done</span>
+                <span x-show="copied">Copied!</span>
+            </button>
+        </div>
+        <p class="text-xs text-red-500 font-semibold mb-6">
+            <span class="material-symbols-outlined text-xs align-middle">warning</span>
+            Register Key ini tidak akan ditampilkan lagi setelah ditutup!
+        </p>
+        <button @click="show = false" class="w-full hero-gradient text-white py-3 rounded-xl font-['Plus_Jakarta_Sans'] font-bold text-base shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]">
+            Saya Sudah Menyimpan, Lanjutkan
+        </button>
+    </div>
+</div>
+@endif
+
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     @if(session('success'))
         <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-800 font-['Inter'] text-sm flex items-center gap-2">

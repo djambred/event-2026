@@ -10,11 +10,11 @@ class FaqSeeder extends Seeder
     public function run(): void
     {
         $faqs = [
-            [
-                'question' => 'What is default password?',
-                'answer' => 'The default password is provided during the registration process. Password will be ueuevent2026 for the initial password and change it upon first login.',
-                'sort_order' => 1,
-            ],
+            // [
+            //     'question' => 'What is default password?',
+            //     'answer' => 'The default password is provided during the registration process. Password will be ueuevent2026 for the initial password and change it upon first login.',
+            //     'sort_order' => 1,
+            // ],
             [
                 'question' => 'What is the Esa Unggul International Event 2026?',
                 'answer' => 'The Esa Unggul International Event 2026 is a prestigious academic and creative competition organized by Lembaga Bahasa dan Kebudayaan Universitas Esa Unggul. It features Storytelling (English & Bahasa Indonesia) and Public Speaking competitions, bringing together talented students from Indonesia and around the world.',
