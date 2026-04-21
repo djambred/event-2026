@@ -70,7 +70,8 @@ class RegistrationResource extends Resource
 
         return $query
             ->whereIn('competition_category_id', $categoryIds)
-            ->where('status', 'confirmed');
+            ->where('status', 'confirmed')
+            ->whereNotIn('stage', ['eliminated']);
     }
 
     public static function form(Form $form): Form
@@ -169,7 +170,8 @@ class RegistrationResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
-                    ->sortable(),
+                    ->sortable()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('registration_type')
                     ->badge()
@@ -178,25 +180,30 @@ class RegistrationResource extends Resource
                         'international' => 'success',
                         default => 'gray',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('full_name')
+                    ->label('Nama Peserta')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('institution')
+                    ->label('Institusi')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('email')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('whatsapp')
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('institution')
-                    ->searchable()
-                    ->sortable(),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('competitionCategory.name')
-                    ->label('Category')
+                    ->label('Kategori Lomba')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('status')
@@ -207,9 +214,11 @@ class RegistrationResource extends Resource
                         'rejected' => 'danger',
                         default => 'gray',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('stage')
+                    ->label('Tahap')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'selection' => 'gray',
@@ -227,63 +236,74 @@ class RegistrationResource extends Resource
                     })
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('youtube_url')
+                    ->label('Video')
+                    ->url(fn ($record) => $record->youtube_url, true)
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-play-circle')
+                    ->formatStateUsing(fn ($state) => $state ? 'Buka Video' : '—')
+                    ->color(fn ($state) => $state ? 'primary' : 'gray')
+                    ->hidden(fn (): bool => ! self::currentUserIsJury()),
+
                 Tables\Columns\TextColumn::make('final_score')
                     ->label('Score')
                     ->sortable()
                     ->toggleable()
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('rank')
                     ->sortable()
                     ->toggleable()
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('grandfinal_score')
                     ->label('GF Score')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('grandfinal_rank')
                     ->label('GF Rank')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->placeholder('—'),
-
-                Tables\Columns\TextColumn::make('youtube_url')
-                    ->label('YouTube')
-                    ->url(fn ($record) => $record->youtube_url, true)
-                    ->icon('heroicon-o-play-circle')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\ImageColumn::make('school_uniform_photo')
                     ->label('Uniform')
                     ->disk('public')
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->circular(),
+                    ->circular()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\ImageColumn::make('payment_proof')
                     ->label('Payment')
                     ->disk('public')
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->circular(),
+                    ->circular()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\ImageColumn::make('student_id_document')
                     ->label('Student ID')
                     ->disk('public')
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->circular(),
+                    ->circular()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Columns\ImageColumn::make('formal_photo')
                     ->label('Formal Photo')
                     ->disk('public')
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->circular(),
+                    ->circular()
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -291,14 +311,16 @@ class RegistrationResource extends Resource
                     ->options([
                         'national' => 'National',
                         'international' => 'International',
-                    ]),
+                    ])
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'pending' => 'Pending',
                         'confirmed' => 'Confirmed',
                         'rejected' => 'Rejected',
-                    ]),
+                    ])
+                    ->hidden(fn (): bool => self::currentUserIsJury()),
 
                 Tables\Filters\SelectFilter::make('competition_category_id')
                     ->relationship('competitionCategory', 'name')
@@ -378,30 +400,6 @@ class RegistrationResource extends Resource
                         }
                     }),
 
-                Tables\Actions\Action::make('generateWinnerCert')
-                    ->label('Winner Certificate')
-                    ->icon('heroicon-o-trophy')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalDescription('Generate a winner/achievement certificate for this participant.')
-                    ->visible(fn (Registration $record): bool => ! self::currentUserIsJury() && $record->status === 'confirmed' && $record->final_score !== null && $record->rank !== null)
-                    ->action(function (Registration $record) {
-                        try {
-                            $path = app(CertificateService::class)->generate($record, 'winner');
-                            $record->update(['winner_certificate' => $path]);
-                            Notification::make()
-                                ->title('Winner certificate generated')
-                                ->success()
-                                ->send();
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->title('Failed to generate certificate')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
-
                 Tables\Actions\Action::make('portalLink')
                     ->label('Portal URL')
                     ->icon('heroicon-o-link')
@@ -450,7 +448,10 @@ class RegistrationResource extends Resource
                             ->send();
                     }),
 
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label(fn (): string => self::currentUserIsJury() ? 'Nilai Peserta' : 'View')
+                    ->icon(fn (): string => self::currentUserIsJury() ? 'heroicon-o-pencil-square' : 'heroicon-o-eye')
+                    ->color(fn (): string => self::currentUserIsJury() ? 'primary' : 'gray'),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (): bool => ! self::currentUserIsJury()),
                 Tables\Actions\DeleteAction::make()

@@ -165,6 +165,96 @@ class ScoresRelationManager extends RelationManager
                             ->send();
                     }),
 
+                Tables\Actions\Action::make('batchJuryScoreInput')
+                    ->label('Input Nilai Semua Juri')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('warning')
+                    ->slideOver()
+                    ->visible(fn () => ! $isJury)
+                    ->form(function () {
+                        $registration = $this->getOwnerRecord();
+                        $criterias = JudgingCriteria::where('competition_category_id', $registration->competition_category_id)
+                            ->orderBy('sort_order')
+                            ->get();
+                        $judges = $registration->competitionCategory->judges()->orderBy('name')->get();
+
+                        if ($judges->isEmpty()) {
+                            return [
+                                Forms\Components\Placeholder::make('no_judges_notice')
+                                    ->label('')
+                                    ->content('Belum ada juri yang di-assign ke kategori ini. Atur melalui menu Judge Mapping terlebih dahulu.'),
+                            ];
+                        }
+
+                        $judgeList = $judges->values();
+                        $round = $this->activeRound;
+
+                        $schema = [
+                            Forms\Components\Placeholder::make('round_info')
+                                ->label('Round')
+                                ->content($round === 'grandfinal' ? '🏆 Grand Final' : '📋 Seleksi'),
+                        ];
+
+                        foreach ($criterias as $criteria) {
+                            $juryInputs = [];
+                            foreach ($judgeList as $index => $judge) {
+                                $existingScore = Score::where('registration_id', $registration->id)
+                                    ->where('judging_criteria_id', $criteria->id)
+                                    ->where('round', $round)
+                                    ->where('scored_by', $judge->id)
+                                    ->value('score');
+
+                                $juryInputs[] = Forms\Components\TextInput::make("score_{$criteria->id}_{$judge->id}")
+                                    ->label('Juri ' . ($index + 1) . ' — ' . $judge->name)
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(10)
+                                    ->step(0.01)
+                                    ->default($existingScore !== null ? (string) $existingScore : null)
+                                    ->placeholder('0 – 10')
+                                    ->suffix('/ 10');
+                            }
+
+                            $schema[] = Forms\Components\Section::make($criteria->name)
+                                ->description('Bobot: ' . floatval($criteria->weight) . '%')
+                                ->schema($juryInputs)
+                                ->columns($judgeList->count());
+                        }
+
+                        return $schema;
+                    })
+                    ->action(function (array $data) {
+                        $registration = $this->getOwnerRecord();
+                        $criterias = JudgingCriteria::where('competition_category_id', $registration->competition_category_id)
+                            ->get();
+                        $judges = $registration->competitionCategory->judges()->get();
+                        $saved = 0;
+
+                        foreach ($criterias as $criteria) {
+                            foreach ($judges as $judge) {
+                                $key = "score_{$criteria->id}_{$judge->id}";
+                                if (array_key_exists($key, $data) && $data[$key] !== null && $data[$key] !== '') {
+                                    Score::updateOrCreate(
+                                        [
+                                            'registration_id' => $registration->id,
+                                            'judging_criteria_id' => $criteria->id,
+                                            'round' => $this->activeRound,
+                                            'scored_by' => $judge->id,
+                                        ],
+                                        ['score' => (float) $data[$key]]
+                                    );
+                                    $saved++;
+                                }
+                            }
+                        }
+
+                        Notification::make()
+                            ->title("{$saved} nilai berhasil disimpan")
+                            ->body('Gunakan tombol "Calculate Final Score" untuk menghitung skor akhir.')
+                            ->success()
+                            ->send();
+                    }),
+
                 Tables\Actions\Action::make('calculateFinalScore')
                     ->label(fn () => $isGrandfinal ? 'Calculate Grand Final Score' : 'Calculate Final Score')
                     ->icon('heroicon-o-calculator')

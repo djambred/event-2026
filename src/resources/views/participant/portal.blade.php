@@ -203,24 +203,83 @@
             @endphp
 
             @if($documents->isNotEmpty())
-            <div class="bg-white rounded-2xl p-5 shadow-sm">
+            <div class="bg-white rounded-2xl p-5 shadow-sm"
+                 x-data="{ open: false, src: '', label: '', isImage: false }"
+                 @keydown.escape.window="open = false">
+
                 <h2 class="font-['Plus_Jakarta_Sans'] text-base font-bold mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#003B73] text-lg">folder_open</span>
                     Documents
                 </h2>
                 <div class="flex flex-wrap gap-3">
                     @foreach($documents as $doc)
-                    <a href="{{ asset('storage/' . $doc['file']) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 bg-[#eff4ff] rounded-lg hover:bg-[#e1e9f8] transition-colors text-sm">
+                    @php
+                        $ext = strtolower(pathinfo($doc['file'], PATHINFO_EXTENSION));
+                        $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                        $fileUrl = asset('storage/' . $doc['file']);
+                    @endphp
+                    <button type="button"
+                        @click="src = '{{ $fileUrl }}'; label = '{{ $doc['label'] }}'; isImage = {{ $isImg ? 'true' : 'false' }}; open = true"
+                        class="inline-flex items-center gap-2 px-3 py-2 bg-[#eff4ff] rounded-lg hover:bg-[#e1e9f8] transition-colors text-sm cursor-pointer">
                         <span class="material-symbols-outlined text-[#003B73] text-base">
-                            @if(in_array(strtolower(pathinfo($doc['file'], PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                image
-                            @else
-                                description
-                            @endif
+                            {{ $isImg ? 'image' : 'description' }}
                         </span>
                         <span class="font-['Plus_Jakarta_Sans'] font-semibold text-xs text-[#141c27]">{{ $doc['label'] }}</span>
-                    </a>
+                        <span class="material-symbols-outlined text-[#003B73]/50 text-sm">visibility</span>
+                    </button>
                     @endforeach
+                </div>
+
+                {{-- Preview Modal --}}
+                <div x-show="open"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                     @click.self="open = false"
+                     style="display: none;">
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+
+                        {{-- Modal Header --}}
+                        <div class="flex items-center justify-between px-5 py-4 border-b border-[#e1e9f8]">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[#003B73] text-lg" x-text="isImage ? 'image' : 'description'"></span>
+                                <span class="font-['Plus_Jakarta_Sans'] font-bold text-sm text-[#141c27]" x-text="label"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a :href="src" target="_blank" rel="noopener"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#eff4ff] text-[#003B73] rounded-lg text-xs font-['Plus_Jakarta_Sans'] font-semibold hover:bg-[#e1e9f8] transition-colors">
+                                    <span class="material-symbols-outlined text-sm">open_in_new</span>
+                                    Buka
+                                </a>
+                                <button @click="open = false"
+                                        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-[#404750] hover:text-red-600 transition-colors">
+                                    <span class="material-symbols-outlined text-base">close</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Modal Body --}}
+                        <div class="flex-1 overflow-auto p-4 bg-[#f8f9ff] flex items-center justify-center min-h-0">
+                            <template x-if="isImage">
+                                <img :src="src" :alt="label"
+                                     class="max-w-full max-h-[65vh] rounded-xl object-contain shadow-md" />
+                            </template>
+                            <template x-if="!isImage">
+                                <iframe :src="src" class="w-full rounded-xl shadow-md bg-white" style="height: 65vh;" frameborder="0"></iframe>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
             @endif
@@ -235,6 +294,13 @@
                 $grandfinalScores = $registration->scores->where('round', 'grandfinal');
                 $selectionGrouped = $selectionScores->groupBy('judging_criteria_id');
                 $grandfinalGrouped = $grandfinalScores->groupBy('judging_criteria_id');
+
+                // Bangun label "Juri 1", "Juri 2", dst — urutkan berdasarkan ID user agar konsisten
+                $juryLabelMap = $registration->competitionCategory->judges
+                    ->sortBy('id')
+                    ->values()
+                    ->mapWithKeys(fn ($judge, $index) => [$judge->id => 'Juri ' . ($index + 1)])
+                    ->toArray();
             @endphp
             <div class="bg-white rounded-2xl p-5 shadow-sm">
                 <h2 class="font-['Plus_Jakarta_Sans'] text-base font-bold mb-3 flex items-center gap-2">
@@ -279,7 +345,7 @@
                             <div class="space-y-1">
                                 @foreach($criteriaScores as $judgeScore)
                                 <div class="flex items-center justify-between text-[11px] text-[#404750]">
-                                    <span class="truncate">{{ $judgeScore->scorer?->name ?? 'Jury' }}</span>
+                                    <span class="truncate">{{ $juryLabelMap[$judgeScore->scored_by] ?? 'Juri' }}</span>
                                     <span class="font-['Plus_Jakarta_Sans'] font-semibold text-[#003B73]">{{ floatval($judgeScore->score) }}</span>
                                 </div>
                                 @endforeach
@@ -328,7 +394,7 @@
                             <div class="space-y-1">
                                 @foreach($criteriaScores as $judgeScore)
                                 <div class="flex items-center justify-between text-[11px] text-[#404750]">
-                                    <span class="truncate">{{ $judgeScore->scorer?->name ?? 'Jury' }}</span>
+                                    <span class="truncate">{{ $juryLabelMap[$judgeScore->scored_by] ?? 'Juri' }}</span>
                                     <span class="font-['Plus_Jakarta_Sans'] font-semibold text-amber-700">{{ floatval($judgeScore->score) }}</span>
                                 </div>
                                 @endforeach
@@ -414,14 +480,13 @@
             @endif
 
             {{-- Certificate Card --}}
-            @if($hasParticipationCert || $hasWinnerCert)
+            @if($hasParticipationCert)
             <div class="bg-gradient-to-br from-[#003B73] to-[#0D5DA6] rounded-2xl p-5 text-white">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="material-symbols-outlined text-xl">workspace_premium</span>
                     <h3 class="font-['Plus_Jakarta_Sans'] font-bold text-sm">Certificates</h3>
                 </div>
                 <div class="space-y-2">
-                    @if($hasParticipationCert)
                     <a href="{{ route('participant.certificate', ['type' => 'participation']) }}"
                        class="block w-full bg-white text-[#003B73] py-2.5 rounded-lg font-['Plus_Jakarta_Sans'] font-bold text-xs text-center hover:scale-[1.02] transition-transform">
                         <span class="flex items-center justify-center gap-1.5">
@@ -429,16 +494,6 @@
                             Participation Certificate
                         </span>
                     </a>
-                    @endif
-                    @if($hasWinnerCert)
-                    <a href="{{ route('participant.certificate', ['type' => 'winner']) }}"
-                       class="block w-full bg-[#E8A317] text-white py-2.5 rounded-lg font-['Plus_Jakarta_Sans'] font-bold text-xs text-center hover:scale-[1.02] transition-transform">
-                        <span class="flex items-center justify-center gap-1.5">
-                            <span class="material-symbols-outlined text-base">emoji_events</span>
-                            Winner Certificate
-                        </span>
-                    </a>
-                    @endif
                 </div>
             </div>
             @else

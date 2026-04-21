@@ -32,9 +32,6 @@ class CertificateService
         }
 
         $rankText = '';
-        if ($type === 'winner' && $registration->rank) {
-            $rankText = $this->getRankLabel($registration->rank);
-        }
 
         // Seal image
         $sealPath = public_path('seal.png');
@@ -77,13 +74,5 @@ class CertificateService
         return $filename;
     }
 
-    private function getRankLabel(int $rank): string
-    {
-        return match ($rank) {
-            1 => '1st Place - Champion',
-            2 => '2nd Place - Runner Up',
-            3 => '3rd Place',
-            default => "Rank #{$rank}",
-        };
-    }
+
 }

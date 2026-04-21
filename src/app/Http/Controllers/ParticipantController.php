@@ -169,8 +169,13 @@ class ParticipantController extends Controller
             ->with([
                 'competitionCategory.judgingCriterias',
                 'competitionCategory.judges',
-                'scores.judgingCriteria',
-                'scores.scorer',
+                'scores' => function ($query) {
+                    $query->whereHas('scorer', function ($q) {
+                        $q->whereHas('roles', function ($r) {
+                            $r->where('name', 'jury');
+                        });
+                    })->with(['judgingCriteria', 'scorer']);
+                },
             ])
             ->firstOrFail();
 
@@ -185,9 +190,6 @@ class ParticipantController extends Controller
             ->get();
 
         $hasParticipationCert = (bool) $registration->competitionCategory->getActiveCertificateTemplate('participation');
-        $hasWinnerCert = $registration->rank
-            ? (bool) $registration->competitionCategory->getActiveCertificateTemplate('winner')
-            : false;
 
         $expectedJudgeCount = $registration->competitionCategory->judges->count();
         $selectionJudgeCount = $registration->scores
@@ -208,7 +210,6 @@ class ParticipantController extends Controller
             'settings',
             'announcements',
             'hasParticipationCert',
-            'hasWinnerCert',
             'expectedJudgeCount',
             'selectionJudgeCount',
             'grandfinalJudgeCount'
@@ -253,7 +254,7 @@ class ParticipantController extends Controller
 
         $type = $request->query('type', 'participation');
 
-        if (!in_array($type, ['participation', 'winner'])) {
+        if ($type !== 'participation') {
             abort(404);
         }
 
@@ -261,10 +262,6 @@ class ParticipantController extends Controller
         $hasTemplate = (bool) $registration->competitionCategory->getActiveCertificateTemplate($type);
 
         if (!$hasTemplate) {
-            abort(404, 'Certificate not available yet.');
-        }
-
-        if ($type === 'winner' && !$registration->rank) {
             abort(404, 'Certificate not available yet.');
         }
 

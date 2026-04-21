@@ -16,18 +16,84 @@ class ViewRegistration extends ViewRecord
 {
     protected static string $resource = RegistrationResource::class;
 
+    private function isJury(): bool
+    {
+        $user = Auth::user();
+
+        return $user instanceof User && $user->hasRole('jury');
+    }
+
     protected function getHeaderActions(): array
     {
-        $authUser = Auth::user();
-        $isJury = $authUser instanceof User && $authUser->hasRole('jury');
-
         return [
             Actions\EditAction::make()
-                ->visible(fn () => ! $isJury),
+                ->visible(fn () => ! $this->isJury()),
         ];
     }
 
     public function infolist(Infolist $infolist): Infolist
+    {
+        if ($this->isJury()) {
+            return $this->juryInfolist($infolist);
+        }
+
+        return $this->adminInfolist($infolist);
+    }
+
+    private function juryInfolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make()
+                    ->schema([
+                        TextEntry::make('full_name')
+                            ->label('Nama Peserta')
+                            ->size(TextEntry\TextEntrySize::Large)
+                            ->weight(\Filament\Support\Enums\FontWeight::Bold),
+
+                        TextEntry::make('institution')
+                            ->label('Institusi'),
+
+                        TextEntry::make('competitionCategory.name')
+                            ->label('Kategori Lomba')
+                            ->badge()
+                            ->color('primary'),
+
+                        TextEntry::make('stage')
+                            ->label('Tahap')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'selection'  => 'gray',
+                                'finalist'   => 'success',
+                                'grandfinal' => 'warning',
+                                'eliminated' => 'danger',
+                                default      => 'gray',
+                            })
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'selection'  => 'Seleksi',
+                                'finalist'   => 'Finalist',
+                                'grandfinal' => 'Grand Final',
+                                'eliminated' => 'Eliminated',
+                                default      => $state,
+                            }),
+
+                        TextEntry::make('youtube_url')
+                            ->label('Video Submission')
+                            ->url(fn ($record) => $record->youtube_url, true)
+                            ->openUrlInNewTab()
+                            ->placeholder('Belum ada video'),
+
+                        ViewEntry::make('youtube_embed')
+                            ->label('Preview Video')
+                            ->view('filament.infolists.youtube-embed')
+                            ->visible(fn ($record) => ! empty($record->youtube_url))
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(4),
+            ]);
+    }
+
+    private function adminInfolist(Infolist $infolist): Infolist
     {
         return $infolist
             ->schema([
@@ -40,34 +106,34 @@ class ViewRegistration extends ViewRecord
                         TextEntry::make('registration_type')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
-                                'national' => 'info',
+                                'national'      => 'info',
                                 'international' => 'success',
-                                default => 'gray',
+                                default         => 'gray',
                             }),
                         TextEntry::make('competitionCategory.name')->label('Category'),
                         TextEntry::make('status')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
-                                'pending' => 'warning',
+                                'pending'   => 'warning',
                                 'confirmed' => 'success',
-                                'rejected' => 'danger',
-                                default => 'gray',
+                                'rejected'  => 'danger',
+                                default     => 'gray',
                             }),
                         TextEntry::make('stage')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
-                                'selection' => 'gray',
-                                'finalist' => 'success',
+                                'selection'  => 'gray',
+                                'finalist'   => 'success',
                                 'grandfinal' => 'warning',
                                 'eliminated' => 'danger',
-                                default => 'gray',
+                                default      => 'gray',
                             })
                             ->formatStateUsing(fn (string $state): string => match ($state) {
-                                'selection' => 'Seleksi',
-                                'finalist' => 'Finalist',
+                                'selection'  => 'Seleksi',
+                                'finalist'   => 'Finalist',
                                 'grandfinal' => 'Grand Final',
                                 'eliminated' => 'Eliminated',
-                                default => $state,
+                                default      => $state,
                             }),
                         TextEntry::make('youtube_url')
                             ->label('YouTube URL')
@@ -76,7 +142,7 @@ class ViewRegistration extends ViewRecord
                         ViewEntry::make('youtube_embed')
                             ->label('Video Preview')
                             ->view('filament.infolists.youtube-embed')
-                            ->visible(fn ($record) => !empty($record->youtube_url))
+                            ->visible(fn ($record) => ! empty($record->youtube_url))
                             ->columnSpanFull(),
                     ])->columns(3),
 
@@ -115,12 +181,6 @@ class ViewRegistration extends ViewRecord
                             ->formatStateUsing(fn ($state) => $state ? 'Generated' : null)
                             ->badge()
                             ->color('info')
-                            ->placeholder('Not generated'),
-                        TextEntry::make('winner_certificate')
-                            ->label('Winner Cert')
-                            ->formatStateUsing(fn ($state) => $state ? 'Generated' : null)
-                            ->badge()
-                            ->color('success')
                             ->placeholder('Not generated'),
                     ])->columns(4),
             ]);

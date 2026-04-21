@@ -32,7 +32,7 @@ class Registration extends Model
         'grandfinal_rank',
         'certificate_file',
         'participation_certificate',
-        'winner_certificate',
+
     ];
 
     protected $hidden = [

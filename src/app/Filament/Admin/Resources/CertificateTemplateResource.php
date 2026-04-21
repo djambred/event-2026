@@ -36,7 +36,6 @@ class CertificateTemplateResource extends Resource
                         Forms\Components\Select::make('type')
                             ->options([
                                 'participation' => 'Participation (Thank You)',
-                                'winner' => 'Winner (Achievement)',
                             ])
                             ->required()
                             ->default('participation')
@@ -83,16 +82,7 @@ class CertificateTemplateResource extends Resource
                             ->label('Category Color')
                             ->default('#0574b9'),
 
-                        Forms\Components\TextInput::make('rank_font_size')
-                            ->label('Rank Font Size (px)')
-                            ->numeric()
-                            ->default(28)
-                            ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner'),
 
-                        Forms\Components\ColorPicker::make('rank_color')
-                            ->label('Rank Color')
-                            ->default('#9f4200')
-                            ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner'),
                     ])->columns(4),
 
                 Forms\Components\Section::make('Name Text Position & Style')
@@ -151,33 +141,7 @@ class CertificateTemplateResource extends Resource
                             ->default('#333333'),
                     ])->columns(4),
 
-                Forms\Components\Section::make('Rank Text Position & Style (Winner Only)')
-                    ->description('Configure where the rank/placement text appears on winner certificates')
-                    ->visible(fn (Forms\Get $get): bool => $get('type') === 'winner' && !empty($get('background_image')))
-                    ->schema([
-                        Forms\Components\TextInput::make('rank_x')
-                            ->label('X Position (%)')
-                            ->numeric()
-                            ->default(50)
-                            ->minValue(0)
-                            ->maxValue(100),
 
-                        Forms\Components\TextInput::make('rank_y')
-                            ->label('Y Position (%)')
-                            ->numeric()
-                            ->default(70)
-                            ->minValue(0)
-                            ->maxValue(100),
-
-                        Forms\Components\TextInput::make('rank_font_size')
-                            ->label('Font Size (px)')
-                            ->numeric()
-                            ->default(28),
-
-                        Forms\Components\ColorPicker::make('rank_color')
-                            ->label('Text Color')
-                            ->default('#E8A317'),
-                    ])->columns(4),
             ]);
     }
 
@@ -193,12 +157,10 @@ class CertificateTemplateResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'participation' => 'info',
-                        'winner' => 'success',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'participation' => 'Participation',
-                        'winner' => 'Winner',
                         default => $state,
                     }),
 
@@ -247,7 +209,7 @@ class CertificateTemplateResource extends Resource
 
                         $sampleName = 'John Doe';
                         $sampleCategory = $record->competitionCategory?->name ?? 'Storytelling';
-                        $sampleRank = $record->type === 'winner' ? '1st Place - Champion' : '';
+                        $sampleRank = '';
 
                         // Seal image
                         $sealPath = public_path('seal.png');
