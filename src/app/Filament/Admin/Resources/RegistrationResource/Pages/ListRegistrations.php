@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\RegistrationResource\Pages;
 
 use App\Filament\Admin\Resources\RegistrationResource;
+use App\Models\Announcement;
 use App\Models\CompetitionCategory;
 use App\Models\JudgingCriteria;
 use App\Models\Registration;
@@ -12,8 +13,7 @@ use Filament\Actions;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Auth;
 
 class ListRegistrations extends ListRecords
 {
@@ -22,6 +22,133 @@ class ListRegistrations extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('announceRegistration')
+                ->label('Pengumuman Registrasi')
+                ->icon('heroicon-o-megaphone')
+                ->color('primary')
+                ->form([
+                    Forms\Components\Select::make('category_id')
+                        ->label('Competition Category')
+                        ->options(CompetitionCategory::where('is_active', true)->pluck('name', 'id'))
+                        ->required(),
+                    Forms\Components\TextInput::make('title')
+                        ->label('Judul Pengumuman')
+                        ->placeholder('Kosongkan untuk judul otomatis')
+                        ->maxLength(255),
+                ])
+                ->requiresConfirmation()
+                ->modalDescription('Buat atau update pengumuman status registrasi berdasarkan data terbaru kategori terpilih.')
+                ->action(function (array $data): void {
+                    $category = CompetitionCategory::find($data['category_id']);
+
+                    if (!$category) {
+                        Notification::make()->title('Kategori tidak ditemukan')->danger()->send();
+
+                        return;
+                    }
+
+                    $baseQuery = Registration::where('competition_category_id', $category->id);
+                    $total = (clone $baseQuery)->count();
+                    $confirmed = (clone $baseQuery)->where('status', 'confirmed')->count();
+                    $pending = (clone $baseQuery)->where('status', 'pending')->count();
+                    $rejected = (clone $baseQuery)->where('status', 'rejected')->count();
+
+                    if ($total === 0) {
+                        Notification::make()->title('Belum ada data registrasi pada kategori ini')->warning()->send();
+
+                        return;
+                    }
+
+                    $title = trim((string) ($data['title'] ?? '')) ?: ('Pengumuman Registrasi - ' . $category->name);
+                    $description = "Update registrasi {$category->name}: Total {$total} peserta, {$confirmed} terkonfirmasi, {$pending} menunggu verifikasi, {$rejected} ditolak.";
+
+                    Announcement::updateOrCreate(
+                        [
+                            'competition_category_id' => $category->id,
+                            'type' => 'info',
+                            'title' => $title,
+                        ],
+                        [
+                            'description' => $description,
+                            'zoom_url' => null,
+                            'winners_count' => null,
+                            'is_published' => true,
+                            'published_at' => now(),
+                        ]
+                    );
+
+                    Notification::make()
+                        ->title('Pengumuman registrasi berhasil dipublikasikan')
+                        ->body($category->name)
+                        ->success()
+                        ->send();
+                }),
+
+            Actions\Action::make('announceSelection')
+                ->label('Pengumuman Seleksi')
+                ->icon('heroicon-o-check-badge')
+                ->color('success')
+                ->form([
+                    Forms\Components\Select::make('category_id')
+                        ->label('Competition Category')
+                        ->options(CompetitionCategory::where('is_active', true)->pluck('name', 'id'))
+                        ->required(),
+                    Forms\Components\TextInput::make('title')
+                        ->label('Judul Pengumuman')
+                        ->placeholder('Kosongkan untuk judul otomatis')
+                        ->maxLength(255),
+                ])
+                ->requiresConfirmation()
+                ->modalDescription('Buat atau update pengumuman hasil seleksi berdasarkan stage peserta pada kategori terpilih.')
+                ->action(function (array $data): void {
+                    $category = CompetitionCategory::find($data['category_id']);
+
+                    if (!$category) {
+                        Notification::make()->title('Kategori tidak ditemukan')->danger()->send();
+
+                        return;
+                    }
+
+                    $query = Registration::where('competition_category_id', $category->id)
+                        ->where('status', 'confirmed');
+
+                    $total = (clone $query)->count();
+                    $finalist = (clone $query)->where('stage', 'finalist')->count();
+                    $grandFinal = (clone $query)->where('stage', 'grandfinal')->count();
+                    $eliminated = (clone $query)->where('stage', 'eliminated')->count();
+                    $selection = (clone $query)->where('stage', 'selection')->count();
+
+                    if ($total === 0) {
+                        Notification::make()->title('Belum ada peserta terkonfirmasi pada kategori ini')->warning()->send();
+
+                        return;
+                    }
+
+                    $title = trim((string) ($data['title'] ?? '')) ?: ('Pengumuman Seleksi - ' . $category->name);
+                    $description = "Update seleksi {$category->name}: Total {$total} peserta terkonfirmasi, {$finalist} finalis, {$grandFinal} grand final, {$eliminated} tidak lolos, {$selection} masih tahap seleksi.";
+
+                    Announcement::updateOrCreate(
+                        [
+                            'competition_category_id' => $category->id,
+                            'type' => 'info',
+                            'title' => $title,
+                        ],
+                        [
+                            'description' => $description,
+                            'zoom_url' => null,
+                            'winners_count' => null,
+                            'is_published' => true,
+                            'published_at' => now(),
+                        ]
+                    );
+
+                    Notification::make()
+                        ->title('Pengumuman seleksi berhasil dipublikasikan')
+                        ->body($category->name)
+                        ->success()
+                        ->send();
+                }),
+
             Actions\Action::make('exportScoringTemplate')
                 ->label('Export Scoring')
                 ->icon('heroicon-o-arrow-down-tray')
@@ -200,7 +327,7 @@ class ListRegistrations extends ListRecords
                                 $existing->update([
                                     'score' => $scoreVal,
                                     'notes' => $rowNotes ?: $existing->notes,
-                                    'scored_by' => auth()->id(),
+                                    'scored_by' => Auth::id(),
                                 ]);
                                 $updated++;
                             } else {
@@ -210,7 +337,7 @@ class ListRegistrations extends ListRecords
                                     'round' => $round,
                                     'score' => $scoreVal,
                                     'notes' => $rowNotes,
-                                    'scored_by' => auth()->id(),
+                                    'scored_by' => Auth::id(),
                                 ]);
                                 $created++;
                             }

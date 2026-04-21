@@ -12,7 +12,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 
 class RegistrationResource extends Resource
@@ -377,6 +376,17 @@ class RegistrationResource extends Resource
                             ->persistent()
                             ->send();
                     }),
+
+                Tables\Actions\Action::make('viewDocuments')
+                    ->label('Berkas')
+                    ->icon('heroicon-o-folder-open')
+                    ->color('info')
+                    ->modalHeading(fn (Registration $record): string => 'Berkas - ' . $record->full_name)
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->modalContent(fn (Registration $record) => view('filament.registration-documents', [
+                        'registration' => $record,
+                    ])),
 
                 Tables\Actions\Action::make('resetRegisterKey')
                     ->label('Reset Register Key')

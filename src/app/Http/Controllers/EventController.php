@@ -14,7 +14,7 @@ class EventController extends Controller
         $categories = CompetitionCategory::where('is_active', true)->get();
         $settings = EventSetting::allForFrontend();
         $faqs = Faq::where('is_active', true)->orderBy('sort_order')->get();
-        $announcements = Announcement::published()
+        $announcements = Announcement::publicVisible()
             ->with('competitionCategory')
             ->latest('published_at')
             ->get();
@@ -40,7 +40,7 @@ class EventController extends Controller
     public function announcements()
     {
         $settings = EventSetting::allForFrontend();
-        $announcements = Announcement::published()
+        $announcements = Announcement::publicVisible()
             ->with('competitionCategory')
             ->latest('published_at')
             ->get();

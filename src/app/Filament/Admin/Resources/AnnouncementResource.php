@@ -4,7 +4,6 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\AnnouncementResource\Pages;
 use App\Models\Announcement;
-use App\Models\Registration;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -151,17 +150,19 @@ class AnnouncementResource extends Resource
                     ->icon('heroicon-o-globe-alt')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalDescription('This will publish the winner announcement and make it visible on the public page.')
+                    ->modalDescription('This will publish the announcement. For winner type, any other published winner announcement in the same category will be automatically unpublished.')
                     ->visible(fn (Announcement $record): bool => !$record->is_published)
                     ->action(function (Announcement $record) {
-                        // Verify winners exist for this category
-                        $winners = $record->getWinners();
-                        if ($winners->isEmpty()) {
-                            Notification::make()
-                                ->title('Cannot publish: no scored and ranked participants found in this category.')
-                                ->danger()
-                                ->send();
-                            return;
+                        if ($record->type === 'winner') {
+                            $winners = $record->getWinners();
+                            if ($winners->isEmpty()) {
+                                Notification::make()
+                                    ->title('Cannot publish: no scored and ranked participants found in this category.')
+                                    ->danger()
+                                    ->send();
+
+                                return;
+                            }
                         }
 
                         $record->update([
@@ -170,8 +171,8 @@ class AnnouncementResource extends Resource
                         ]);
 
                         Notification::make()
-                            ->title('Winner announcement published!')
-                            ->body($winners->count() . ' winners displayed for ' . $record->competitionCategory->name)
+                            ->title('Announcement published!')
+                            ->body($record->competitionCategory->name)
                             ->success()
                             ->send();
                     }),

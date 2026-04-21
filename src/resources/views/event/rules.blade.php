@@ -74,12 +74,7 @@
         {{-- Title Banner --}}
         <div class="bg-gradient-to-r from-[#003B73] to-[#0D5DA6] rounded-3xl p-8 md:p-12 mb-8 text-white relative overflow-hidden">
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
-                    <span class="material-symbols-outlined text-sm">public</span>
-                    INTERNATIONAL COMPETITION
-                </div>
                 <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl mb-2">{{ $settings['st_en_title'] ?? 'Storytelling Competition (English)' }}</h2>
-                <p class="text-white/80 text-lg font-['Inter']">Category: {{ $settings['st_en_category'] ?? 'University Students' }}</p>
             </div>
             <div class="absolute -bottom-10 -right-10 opacity-10">
                 <span class="material-symbols-outlined" style="font-size: 14rem;">auto_stories</span>
@@ -233,12 +228,7 @@
         {{-- Title Banner --}}
         <div class="bg-gradient-to-r from-[#003B73] to-[#0D5DA6] rounded-3xl p-8 md:p-12 mb-8 text-white relative overflow-hidden">
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
-                    <span class="material-symbols-outlined text-sm">public</span>
-                    INTERNATIONAL COMPETITION
-                </div>
                 <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl mb-2">{{ $settings['st_id_title'] ?? 'Storytelling Competition (Bahasa Indonesia)' }}</h2>
-                <p class="text-white/80 text-lg font-['Inter']">Category: {{ $settings['st_id_category'] ?? 'Foreign University Students' }}</p>
             </div>
             <div class="absolute -bottom-10 -right-10 opacity-10">
                 <span class="material-symbols-outlined" style="font-size: 14rem;">auto_stories</span>
@@ -384,12 +374,7 @@
         {{-- Title Banner --}}
         <div class="bg-gradient-to-r from-[#003B73] to-[#0D5DA6] rounded-3xl p-8 md:p-12 mb-8 text-white relative overflow-hidden">
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
-                    <span class="material-symbols-outlined text-sm">public</span>
-                    INTERNATIONAL COMPETITION
-                </div>
                 <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl mb-2">{{ $settings['ps_title'] ?? 'Public Speaking Competition (English)' }}</h2>
-                <p class="text-white/80 text-lg font-['Inter']">Category: {{ $settings['ps_category'] ?? 'University Students' }}</p>
             </div>
             <div class="absolute -bottom-10 -right-10 opacity-10">
                 <span class="material-symbols-outlined" style="font-size: 14rem;">campaign</span>
@@ -533,12 +518,7 @@
 
         <div class="bg-gradient-to-r from-[#003B73] to-[#0D5DA6] rounded-3xl p-8 md:p-12 mb-8 text-white relative overflow-hidden">
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
-                    <span class="material-symbols-outlined text-sm">flag</span>
-                    NATIONAL COMPETITION
-                </div>
                 <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl mb-2">{{ $modernDance?->name ?? 'Modern Dance' }}</h2>
-                <p class="text-white/80 text-lg font-['Inter']">Category: National Participants</p>
             </div>
             <div class="absolute -bottom-10 -right-10 opacity-10">
                 <span class="material-symbols-outlined" style="font-size: 14rem;">theater_comedy</span>
@@ -610,12 +590,7 @@
 
         <div class="bg-gradient-to-r from-[#003B73] to-[#0D5DA6] rounded-3xl p-8 md:p-12 mb-8 text-white relative overflow-hidden">
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
-                    <span class="material-symbols-outlined text-sm">flag</span>
-                    NATIONAL COMPETITION
-                </div>
                 <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl mb-2">{{ $koreanCalligraphy?->name ?? 'Korean Calligraphy' }}</h2>
-                <p class="text-white/80 text-lg font-['Inter']">Category: National Participants</p>
             </div>
             <div class="absolute -bottom-10 -right-10 opacity-10">
                 <span class="material-symbols-outlined" style="font-size: 14rem;">draw</span>

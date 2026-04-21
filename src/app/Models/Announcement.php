@@ -24,6 +24,30 @@ class Announcement extends Model
         'winners_count' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Announcement $announcement): void {
+            if (!$announcement->is_published) {
+                return;
+            }
+
+            if (!$announcement->published_at) {
+                $announcement->published_at = now();
+            }
+
+            if ($announcement->type !== 'winner' || !$announcement->competition_category_id) {
+                return;
+            }
+
+            static::query()
+                ->where('competition_category_id', $announcement->competition_category_id)
+                ->where('type', 'winner')
+                ->where('is_published', true)
+                ->when($announcement->exists, fn ($query) => $query->whereKeyNot($announcement->getKey()))
+                ->update(['is_published' => false]);
+        });
+    }
+
     public function competitionCategory(): BelongsTo
     {
         return $this->belongsTo(CompetitionCategory::class);
@@ -43,5 +67,36 @@ class Announcement extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true);
+    }
+
+    public function scopePublicVisible($query)
+    {
+        return $query
+            ->where('is_published', true)
+            ->where(function ($innerQuery) {
+                $innerQuery
+                    ->where('type', '!=', 'winner')
+                    ->orWhereIn('id', static::query()
+                        ->selectRaw('MAX(id)')
+                        ->where('is_published', true)
+                        ->where('type', 'winner')
+                        ->groupBy('competition_category_id'));
+            });
+    }
+
+    public function scopePublicVisibleForCategory($query, int $categoryId)
+    {
+        return $query
+            ->where('competition_category_id', $categoryId)
+            ->where('is_published', true)
+            ->where(function ($innerQuery) use ($categoryId) {
+                $innerQuery
+                    ->where('type', '!=', 'winner')
+                    ->orWhere('id', static::query()
+                        ->where('competition_category_id', $categoryId)
+                        ->where('is_published', true)
+                        ->where('type', 'winner')
+                        ->max('id'));
+            });
     }
 }

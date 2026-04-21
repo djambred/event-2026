@@ -5,11 +5,25 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Models\EventSetting;
 use App\Models\Registration;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class ParticipantController extends Controller
 {
+    private function lockRejectedParticipant(Registration $registration): ?RedirectResponse
+    {
+        if ($registration->status !== 'rejected') {
+            return null;
+        }
+
+        session()->forget('participant_token');
+
+        return redirect()
+            ->route('participant.login')
+            ->with('error', 'Akses portal dikunci karena pendaftaran Anda berstatus rejected.');
+    }
+
     private static function signCaptcha(int $answer): string
     {
         return hash_hmac('sha256', (string) $answer, config('app.key'));
@@ -46,6 +60,16 @@ class ParticipantController extends Controller
     public function loginForm()
     {
         if (session('participant_token')) {
+            $currentRegistration = Registration::where('access_token', session('participant_token'))->first();
+
+            if ($currentRegistration && $currentRegistration->status === 'rejected') {
+                session()->forget('participant_token');
+
+                return redirect()
+                    ->route('participant.login')
+                    ->with('error', 'Akses portal dikunci karena pendaftaran Anda berstatus rejected.');
+            }
+
             return redirect()->route('participant.portal');
         }
 
@@ -74,6 +98,12 @@ class ParticipantController extends Controller
             return back()->with('error', 'Invalid email or Register Key.')->withInput(['email' => $request->email]);
         }
 
+        if ($registration->status === 'rejected') {
+            return back()
+                ->with('error', 'Akses portal dikunci karena pendaftaran Anda berstatus rejected.')
+                ->withInput(['email' => $request->email]);
+        }
+
         session(['participant_token' => $registration->access_token]);
 
         return redirect()->route('participant.portal');
@@ -87,6 +117,10 @@ class ParticipantController extends Controller
         }
 
         $registration = Registration::where('access_token', $token)->firstOrFail();
+        if ($lockedRedirect = $this->lockRejectedParticipant($registration)) {
+            return $lockedRedirect;
+        }
+
         $settings = EventSetting::allForFrontend();
         $captcha = $this->generateCaptcha();
 
@@ -112,6 +146,10 @@ class ParticipantController extends Controller
             return redirect()->route('participant.login');
         }
 
+        if ($lockedRedirect = $this->lockRejectedParticipant($registration)) {
+            return $lockedRedirect;
+        }
+
         $registration->update([
             'password' => Hash::make($request->password),
             'password_changed' => true,
@@ -134,10 +172,13 @@ class ParticipantController extends Controller
             ])
             ->firstOrFail();
 
+        if ($lockedRedirect = $this->lockRejectedParticipant($registration)) {
+            return $lockedRedirect;
+        }
+
         $settings = EventSetting::allForFrontend();
 
-        $announcements = Announcement::where('competition_category_id', $registration->competition_category_id)
-            ->where('is_published', true)
+        $announcements = Announcement::publicVisibleForCategory($registration->competition_category_id)
             ->latest('published_at')
             ->get();
 
@@ -161,6 +202,10 @@ class ParticipantController extends Controller
         ]);
 
         $registration = Registration::where('access_token', $token)->firstOrFail();
+        if ($lockedRedirect = $this->lockRejectedParticipant($registration)) {
+            return $lockedRedirect;
+        }
+
         $registration->update(['youtube_url' => $request->youtube_url]);
 
         return redirect()->route('participant.portal')->with('success', 'YouTube video URL updated successfully!');
@@ -176,6 +221,10 @@ class ParticipantController extends Controller
         $registration = Registration::where('access_token', $token)
             ->with('competitionCategory')
             ->firstOrFail();
+
+        if ($lockedRedirect = $this->lockRejectedParticipant($registration)) {
+            return $lockedRedirect;
+        }
 
         $type = $request->query('type', 'participation');
 
