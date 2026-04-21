@@ -233,6 +233,8 @@
             @php
                 $selectionScores = $registration->scores->where('round', 'selection');
                 $grandfinalScores = $registration->scores->where('round', 'grandfinal');
+                $selectionGrouped = $selectionScores->groupBy('judging_criteria_id');
+                $grandfinalGrouped = $grandfinalScores->groupBy('judging_criteria_id');
             @endphp
             <div class="bg-white rounded-2xl p-5 shadow-sm">
                 <h2 class="font-['Plus_Jakarta_Sans'] text-base font-bold mb-3 flex items-center gap-2">
@@ -240,19 +242,50 @@
                     Scores
                 </h2>
 
+                <div class="mb-3 p-3 bg-[#eff4ff] rounded-xl">
+                    <p class="font-['Work_Sans'] text-[10px] text-[#404750] uppercase tracking-wider">Jumlah Juri per Kategori</p>
+                    <p class="font-['Plus_Jakarta_Sans'] font-bold text-sm text-[#141c27]">{{ $expectedJudgeCount }} Juri</p>
+                    <div class="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-white rounded-lg px-2 py-1.5">
+                            <p class="font-['Work_Sans'] text-[10px] text-[#404750] uppercase">Penilaian Seleksi</p>
+                            <p class="font-['Plus_Jakarta_Sans'] font-bold text-[#003B73]">{{ $selectionJudgeCount }}/{{ $expectedJudgeCount }}</p>
+                        </div>
+                        <div class="bg-white rounded-lg px-2 py-1.5">
+                            <p class="font-['Work_Sans'] text-[10px] text-[#404750] uppercase">Penilaian Grand Final</p>
+                            <p class="font-['Plus_Jakarta_Sans'] font-bold text-amber-700">{{ $grandfinalJudgeCount }}/{{ $expectedJudgeCount }}</p>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Selection Round --}}
                 @if($selectionScores->count() > 0)
                 <div class="mb-3">
                     <p class="font-['Work_Sans'] text-[10px] text-[#404750] uppercase tracking-wider mb-2">Seleksi</p>
                     <div class="space-y-1.5">
-                        @foreach($selectionScores as $score)
-                        <div class="flex items-center justify-between py-1.5 px-3 bg-[#f8f9ff] rounded-lg">
-                            <span class="font-['Inter'] text-xs text-[#141c27]">{{ $score->judgingCriteria->name }}</span>
-                            <div class="flex items-center gap-3">
-                                <span class="font-['Inter'] text-[10px] text-[#404750]">{{ floatval($score->judgingCriteria->weight) }}%</span>
-                                <span class="font-['Plus_Jakarta_Sans'] font-bold text-xs text-[#003B73] w-8 text-right">{{ floatval($score->score) }}</span>
+                        @foreach($selectionGrouped as $criteriaScores)
+                        @php
+                            $criteria = $criteriaScores->first()?->judgingCriteria;
+                            $avgScore = round($criteriaScores->avg('score'), 2);
+                        @endphp
+                        @if($criteria)
+                        <div class="py-2 px-3 bg-[#f8f9ff] rounded-lg">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-['Inter'] text-xs text-[#141c27]">{{ $criteria->name }}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="font-['Inter'] text-[10px] text-[#404750]">{{ floatval($criteria->weight) }}%</span>
+                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-xs text-[#003B73]">Avg {{ $avgScore }}</span>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                @foreach($criteriaScores as $judgeScore)
+                                <div class="flex items-center justify-between text-[11px] text-[#404750]">
+                                    <span class="truncate">{{ $judgeScore->scorer?->name ?? 'Jury' }}</span>
+                                    <span class="font-['Plus_Jakarta_Sans'] font-semibold text-[#003B73]">{{ floatval($judgeScore->score) }}</span>
+                                </div>
+                                @endforeach
                             </div>
                         </div>
+                        @endif
                         @endforeach
                     </div>
                 </div>
@@ -278,14 +311,30 @@
                 <div class="mb-3">
                     <p class="font-['Work_Sans'] text-[10px] text-amber-700 uppercase tracking-wider mb-2">Grand Final</p>
                     <div class="space-y-1.5">
-                        @foreach($grandfinalScores as $score)
-                        <div class="flex items-center justify-between py-1.5 px-3 bg-amber-50 rounded-lg">
-                            <span class="font-['Inter'] text-xs text-[#141c27]">{{ $score->judgingCriteria->name }}</span>
-                            <div class="flex items-center gap-3">
-                                <span class="font-['Inter'] text-[10px] text-[#404750]">{{ floatval($score->judgingCriteria->weight) }}%</span>
-                                <span class="font-['Plus_Jakarta_Sans'] font-bold text-xs text-amber-700 w-8 text-right">{{ floatval($score->score) }}</span>
+                        @foreach($grandfinalGrouped as $criteriaScores)
+                        @php
+                            $criteria = $criteriaScores->first()?->judgingCriteria;
+                            $avgScore = round($criteriaScores->avg('score'), 2);
+                        @endphp
+                        @if($criteria)
+                        <div class="py-2 px-3 bg-amber-50 rounded-lg">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-['Inter'] text-xs text-[#141c27]">{{ $criteria->name }}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="font-['Inter'] text-[10px] text-[#404750]">{{ floatval($criteria->weight) }}%</span>
+                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-xs text-amber-700">Avg {{ $avgScore }}</span>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                @foreach($criteriaScores as $judgeScore)
+                                <div class="flex items-center justify-between text-[11px] text-[#404750]">
+                                    <span class="truncate">{{ $judgeScore->scorer?->name ?? 'Jury' }}</span>
+                                    <span class="font-['Plus_Jakarta_Sans'] font-semibold text-amber-700">{{ floatval($judgeScore->score) }}</span>
+                                </div>
+                                @endforeach
                             </div>
                         </div>
+                        @endif
                         @endforeach
                     </div>
                 </div>

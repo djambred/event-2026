@@ -168,7 +168,9 @@ class ParticipantController extends Controller
         $registration = Registration::where('access_token', $token)
             ->with([
                 'competitionCategory.judgingCriterias',
+                'competitionCategory.judges',
                 'scores.judgingCriteria',
+                'scores.scorer',
             ])
             ->firstOrFail();
 
@@ -187,7 +189,30 @@ class ParticipantController extends Controller
             ? (bool) $registration->competitionCategory->getActiveCertificateTemplate('winner')
             : false;
 
-        return view('participant.portal', compact('registration', 'settings', 'announcements', 'hasParticipationCert', 'hasWinnerCert'));
+        $expectedJudgeCount = $registration->competitionCategory->judges->count();
+        $selectionJudgeCount = $registration->scores
+            ->where('round', 'selection')
+            ->pluck('scored_by')
+            ->filter()
+            ->unique()
+            ->count();
+        $grandfinalJudgeCount = $registration->scores
+            ->where('round', 'grandfinal')
+            ->pluck('scored_by')
+            ->filter()
+            ->unique()
+            ->count();
+
+        return view('participant.portal', compact(
+            'registration',
+            'settings',
+            'announcements',
+            'hasParticipationCert',
+            'hasWinnerCert',
+            'expectedJudgeCount',
+            'selectionJudgeCount',
+            'grandfinalJudgeCount'
+        ));
     }
 
     public function updateYoutube(Request $request)
