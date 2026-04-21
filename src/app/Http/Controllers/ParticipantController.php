@@ -49,7 +49,7 @@ class ParticipantController extends Controller
             return redirect()->route('participant.portal');
         }
 
-        $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $settings = EventSetting::allForFrontend();
         $captcha = $this->generateCaptcha();
 
         return view('participant.lookup', compact('settings') + $captcha);
@@ -87,7 +87,7 @@ class ParticipantController extends Controller
         }
 
         $registration = Registration::where('access_token', $token)->firstOrFail();
-        $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $settings = EventSetting::allForFrontend();
         $captcha = $this->generateCaptcha();
 
         return view('participant.change-password', compact('settings', 'token') + $captcha);
@@ -134,7 +134,7 @@ class ParticipantController extends Controller
             ])
             ->firstOrFail();
 
-        $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $settings = EventSetting::allForFrontend();
 
         $announcements = Announcement::where('competition_category_id', $registration->competition_category_id)
             ->where('is_published', true)

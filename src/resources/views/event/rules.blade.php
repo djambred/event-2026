@@ -46,6 +46,18 @@
             <span class="material-symbols-outlined text-lg">campaign</span>
             Public Speaking (English)
         </button>
+        <button @click="activeTab = 'modern-dance'"
+            :class="activeTab === 'modern-dance' ? 'bg-[#003B73] text-white shadow-lg shadow-[#003B73]/20' : 'bg-[#eff4ff] text-[#003B73] hover:bg-[#e6eefd]'"
+            class="px-6 py-3 rounded-xl font-['Plus_Jakarta_Sans'] font-bold text-sm transition-all duration-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">theater_comedy</span>
+            Modern Dance
+        </button>
+        <button @click="activeTab = 'korean-calligraphy'"
+            :class="activeTab === 'korean-calligraphy' ? 'bg-[#003B73] text-white shadow-lg shadow-[#003B73]/20' : 'bg-[#eff4ff] text-[#003B73] hover:bg-[#e6eefd]'"
+            class="px-6 py-3 rounded-xl font-['Plus_Jakarta_Sans'] font-bold text-sm transition-all duration-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">draw</span>
+            Korean Calligraphy
+        </button>
         <button @click="activeTab = 'workshop'"
             :class="activeTab === 'workshop' ? 'bg-[#8B6914] text-white shadow-lg shadow-[#8B6914]/20' : 'bg-[#FFF0C8] text-[#3D2B00] hover:bg-[#ffd0b8]'"
             class="px-6 py-3 rounded-xl font-['Plus_Jakarta_Sans'] font-bold text-sm transition-all duration-200 flex items-center gap-2">
@@ -509,6 +521,160 @@
             {{-- Sidebar --}}
             <div class="space-y-8">
                 @include('event.partials.judging-criteria', ['judgingData' => $settings['ps_judging'] ?? "Content Quality & Argument Strength|30%\nDelivery (confidence & intonation)|20%\nOrganization & Structure|15%\nLanguage Proficiency|15%\nPronunciation|15%\nTime Management|5%"])
+                @include('event.partials.timeline-sidebar', ['settings' => $settings])
+            </div>
+        </div>
+    </div>
+
+    {{-- ============================================== --}}
+    {{-- TAB 4: MODERN DANCE --}}
+    {{-- ============================================== --}}
+    <div x-show="activeTab === 'modern-dance'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+
+        <div class="bg-gradient-to-r from-[#003B73] to-[#0D5DA6] rounded-3xl p-8 md:p-12 mb-8 text-white relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
+                    <span class="material-symbols-outlined text-sm">flag</span>
+                    NATIONAL COMPETITION
+                </div>
+                <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl mb-2">{{ $modernDance?->name ?? 'Modern Dance' }}</h2>
+                <p class="text-white/80 text-lg font-['Inter']">Category: National Participants</p>
+            </div>
+            <div class="absolute -bottom-10 -right-10 opacity-10">
+                <span class="material-symbols-outlined" style="font-size: 14rem;">theater_comedy</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <section class="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-[#e6eefd]">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#003B73]">
+                            <span class="material-symbols-outlined">info</span>
+                        </div>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">General Information</h3>
+                    </div>
+                    <ol class="space-y-3 text-[#404750] font-['Inter'] list-decimal list-inside marker:font-bold marker:text-[#003B73]">
+                        <li>Competition is open for active students in Indonesia.</li>
+                        <li>Participation can be individual or group according to official committee guidance.</li>
+                        <li>Participants must submit complete and valid registration data.</li>
+                        <li>Judges' decisions are final and cannot be contested.</li>
+                    </ol>
+                </section>
+
+                <section class="bg-[#eff4ff] rounded-3xl p-8 md:p-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#8B6914]">
+                            <span class="material-symbols-outlined">trophy</span>
+                        </div>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Competition Format</h3>
+                    </div>
+                    <ol class="space-y-3 text-[#404750] font-['Inter'] list-decimal list-inside marker:font-bold marker:text-[#8B6914]">
+                        <li>Preliminary round is based on video submission according to technical requirements.</li>
+                        <li>Selected finalists will perform live in the grand final session.</li>
+                        <li>Performance duration and stage requirements follow the technical briefing.</li>
+                    </ol>
+                </section>
+
+                <section class="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-[#e6eefd]">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#003B73]">
+                            <span class="material-symbols-outlined">videocam</span>
+                        </div>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Submission Notes</h3>
+                    </div>
+                    <ul class="space-y-3 text-[#404750] font-['Inter']">
+                        <li class="flex gap-2 items-start"><span class="material-symbols-outlined text-[#003B73] text-lg">check_circle</span><span>Video must clearly show all performers and choreography details.</span></li>
+                        <li class="flex gap-2 items-start"><span class="material-symbols-outlined text-[#003B73] text-lg">check_circle</span><span>Use good lighting and stable camera framing.</span></li>
+                        <li class="flex gap-2 items-start"><span class="material-symbols-outlined text-[#003B73] text-lg">check_circle</span><span>Do not include offensive content or copyrighted tracks without permission.</span></li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                @php
+                    $modernDanceJudging = $modernDance?->judgingCriterias
+                        ? $modernDance->judgingCriterias->map(fn ($criteria) => $criteria->name . '|' . floatval($criteria->weight) . '%')->implode("\n")
+                        : null;
+                @endphp
+                @include('event.partials.judging-criteria', ['judgingData' => $modernDanceJudging ?: "Choreography & Creativity|25%\nTechnique & Synchronization|25%\nMusicality & Rhythm|20%\nStage Presence & Energy|15%\nCostume & Overall Presentation|15%"])
+                @include('event.partials.timeline-sidebar', ['settings' => $settings])
+            </div>
+        </div>
+    </div>
+
+    {{-- ============================================== --}}
+    {{-- TAB 5: KOREAN CALLIGRAPHY --}}
+    {{-- ============================================== --}}
+    <div x-show="activeTab === 'korean-calligraphy'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+
+        <div class="bg-gradient-to-r from-[#003B73] to-[#0D5DA6] rounded-3xl p-8 md:p-12 mb-8 text-white relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
+                    <span class="material-symbols-outlined text-sm">flag</span>
+                    NATIONAL COMPETITION
+                </div>
+                <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-3xl md:text-4xl mb-2">{{ $koreanCalligraphy?->name ?? 'Korean Calligraphy' }}</h2>
+                <p class="text-white/80 text-lg font-['Inter']">Category: National Participants</p>
+            </div>
+            <div class="absolute -bottom-10 -right-10 opacity-10">
+                <span class="material-symbols-outlined" style="font-size: 14rem;">draw</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <section class="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-[#e6eefd]">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#003B73]">
+                            <span class="material-symbols-outlined">info</span>
+                        </div>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">General Information</h3>
+                    </div>
+                    <ol class="space-y-3 text-[#404750] font-['Inter'] list-decimal list-inside marker:font-bold marker:text-[#003B73]">
+                        <li>Competition is open for active students in Indonesia.</li>
+                        <li>Participants create Korean calligraphy artwork based on assigned or approved text.</li>
+                        <li>Work must be original and created by the registered participant.</li>
+                        <li>Judges' decisions are final and cannot be contested.</li>
+                    </ol>
+                </section>
+
+                <section class="bg-[#eff4ff] rounded-3xl p-8 md:p-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#8B6914]">
+                            <span class="material-symbols-outlined">ink_pen</span>
+                        </div>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Submission Format</h3>
+                    </div>
+                    <ol class="space-y-3 text-[#404750] font-['Inter'] list-decimal list-inside marker:font-bold marker:text-[#8B6914]">
+                        <li>Participants submit high-resolution photo/scan of the final artwork for preliminary assessment.</li>
+                        <li>File must be clear, unedited, and show full composition.</li>
+                        <li>Selected finalists may be requested to present process documentation in final session.</li>
+                    </ol>
+                </section>
+
+                <section class="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-[#e6eefd]">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#003B73]">
+                            <span class="material-symbols-outlined">checklist</span>
+                        </div>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Important Notes</h3>
+                    </div>
+                    <ul class="space-y-3 text-[#404750] font-['Inter']">
+                        <li class="flex gap-2 items-start"><span class="material-symbols-outlined text-[#003B73] text-lg">check_circle</span><span>Ensure proper stroke order and character readability.</span></li>
+                        <li class="flex gap-2 items-start"><span class="material-symbols-outlined text-[#003B73] text-lg">check_circle</span><span>Keep layout balanced and visually consistent.</span></li>
+                        <li class="flex gap-2 items-start"><span class="material-symbols-outlined text-[#003B73] text-lg">check_circle</span><span>Entries with plagiarism will be disqualified.</span></li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                @php
+                    $koreanCalligraphyJudging = $koreanCalligraphy?->judgingCriterias
+                        ? $koreanCalligraphy->judgingCriterias->map(fn ($criteria) => $criteria->name . '|' . floatval($criteria->weight) . '%')->implode("\n")
+                        : null;
+                @endphp
+                @include('event.partials.judging-criteria', ['judgingData' => $koreanCalligraphyJudging ?: "Stroke Accuracy|30%\nComposition & Layout|25%\nArtistic Expression|20%\nNeatness & Consistency|15%\nOverall Impression|10%"])
                 @include('event.partials.timeline-sidebar', ['settings' => $settings])
             </div>
         </div>

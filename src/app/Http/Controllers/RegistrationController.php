@@ -48,7 +48,7 @@ class RegistrationController extends Controller
         $categories = CompetitionCategory::where('is_active', true)
             ->where('is_national', true)
             ->get();
-        $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $settings = EventSetting::allForFrontend();
         $captcha = $this->generateCaptcha();
 
         return view('event.registration-national', compact('categories', 'settings') + $captcha);
@@ -59,7 +59,7 @@ class RegistrationController extends Controller
         $categories = CompetitionCategory::where('is_active', true)
             ->where('is_international', true)
             ->get();
-        $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $settings = EventSetting::allForFrontend();
         $captcha = $this->generateCaptcha();
 
         return view('event.registration-international', compact('categories', 'settings') + $captcha);

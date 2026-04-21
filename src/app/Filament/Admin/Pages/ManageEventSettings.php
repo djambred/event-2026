@@ -22,9 +22,22 @@ class ManageEventSettings extends Page
 
     public ?array $data = [];
 
+    private const IMAGE_SETTING_KEYS = [
+        'hero_image',
+        'road_image',
+        'reg_nat_hero_image',
+        'reg_int_hero_image',
+        'rules_hero_image',
+    ];
+
     public function mount(): void
     {
         $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+
+        foreach (self::IMAGE_SETTING_KEYS as $imageKey) {
+            $settings[$imageKey . '_upload'] = null;
+        }
+
         $this->form->fill($settings);
     }
 
@@ -70,7 +83,7 @@ class ManageEventSettings extends Page
                                     Forms\Components\TextInput::make('hero_subtitle')->label('Hero Subtitle'),
                                     Forms\Components\Textarea::make('hero_description')->label('Hero Description')->rows(3),
                                     Forms\Components\TextInput::make('hero_badge_text')->label('Badge Text'),
-                                    Forms\Components\TextInput::make('hero_image')->label('Hero Image URL')->url()->suffixIcon('heroicon-o-photo'),
+                                    ...$this->imageSettingFields('hero_image', 'Hero Image'),
                                 ]),
                                 Forms\Components\Section::make('Highlights Section')->schema([
                                     Forms\Components\TextInput::make('highlights_title')->label('Section Title'),
@@ -88,7 +101,7 @@ class ManageEventSettings extends Page
                                 ]),
                                 Forms\Components\Section::make('Road to Excellence')->schema([
                                     Forms\Components\TextInput::make('road_title')->label('Section Title'),
-                                    Forms\Components\TextInput::make('road_image')->label('Section Image URL')->url()->suffixIcon('heroicon-o-photo'),
+                                    ...$this->imageSettingFields('road_image', 'Section Image'),
                                     Forms\Components\TextInput::make('workshop_label')->label('Workshop Label'),
                                     Forms\Components\Textarea::make('workshop_description')->label('Workshop Description')->rows(2),
                                     Forms\Components\TextInput::make('final_day1_label')->label('Grand Final Day 1 Label'),
@@ -250,7 +263,7 @@ class ManageEventSettings extends Page
                                     Forms\Components\Textarea::make('reg_nat_description')->label('Description')->rows(3),
                                     Forms\Components\TextInput::make('reg_nat_workshop_label')->label('Workshop Label'),
                                     Forms\Components\TextInput::make('reg_nat_workshop_datetime')->label('Workshop Date & Time'),
-                                    Forms\Components\TextInput::make('reg_nat_hero_image')->label('Hero Image URL')->url()->suffixIcon('heroicon-o-photo'),
+                                    ...$this->imageSettingFields('reg_nat_hero_image', 'Hero Image'),
                                 ]),
                                 Forms\Components\Section::make('International Registration Page')->schema([
                                     Forms\Components\TextInput::make('reg_int_badge')->label('Badge Text'),
@@ -259,7 +272,7 @@ class ManageEventSettings extends Page
                                     Forms\Components\TextInput::make('reg_int_entry_fee')->label('Entry Fee Label'),
                                     Forms\Components\TextInput::make('reg_int_workshop_date')->label('Workshop Date Display'),
                                     Forms\Components\TextInput::make('reg_int_note')->label('Important Note Text'),
-                                    Forms\Components\TextInput::make('reg_int_hero_image')->label('Hero Image URL')->url()->suffixIcon('heroicon-o-photo'),
+                                    ...$this->imageSettingFields('reg_int_hero_image', 'Hero Image'),
                                 ]),
                             ]),
 
@@ -273,7 +286,7 @@ class ManageEventSettings extends Page
                                     Forms\Components\TextInput::make('rules_badge')->label('Badge Text'),
                                     Forms\Components\TextInput::make('rules_title')->label('Page Title (HTML allowed)'),
                                     Forms\Components\Textarea::make('rules_description')->label('Description')->rows(3),
-                                    Forms\Components\TextInput::make('rules_hero_image')->label('Hero Image URL')->url()->suffixIcon('heroicon-o-photo'),
+                                    ...$this->imageSettingFields('rules_hero_image', 'Hero Image'),
                                 ]),
                                 Forms\Components\Section::make('CTA Section')->schema([
                                     Forms\Components\TextInput::make('rules_cta_title')->label('CTA Title'),
@@ -288,6 +301,16 @@ class ManageEventSettings extends Page
     public function save(): void
     {
         $data = $this->form->getState();
+
+        foreach (self::IMAGE_SETTING_KEYS as $imageKey) {
+            $uploadKey = $imageKey . '_upload';
+
+            if (!empty($data[$uploadKey])) {
+                $data[$imageKey] = $data[$uploadKey];
+            }
+
+            unset($data[$uploadKey]);
+        }
 
         foreach ($data as $key => $value) {
             EventSetting::updateOrCreate(
@@ -322,5 +345,23 @@ class ManageEventSettings extends Page
             str_starts_with($key, 'registration_') || str_starts_with($key, 'submission_') || str_starts_with($key, 'video_') || str_starts_with($key, 'selection_') || str_starts_with($key, 'finalist_') || str_starts_with($key, 'technical_') || str_starts_with($key, 'grand_final') || str_starts_with($key, 'venue_') => 'dates',
             default => 'general',
         };
+    }
+
+    private function imageSettingFields(string $settingKey, string $label): array
+    {
+        return [
+            Forms\Components\FileUpload::make($settingKey . '_upload')
+                ->label($label . ' Upload')
+                ->image()
+                ->disk('public')
+                ->directory('event-settings')
+                ->visibility('public')
+                ->imageEditor()
+                ->helperText('Upload gambar baru untuk menggantikan URL yang sedang dipakai.'),
+            Forms\Components\TextInput::make($settingKey)
+                ->label($label . ' URL')
+                ->url()
+                ->suffixIcon('heroicon-o-photo'),
+        ];
     }
 }
