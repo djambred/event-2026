@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Pages;
 
 use App\Models\EventSetting;
+use App\Models\Faq;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -33,10 +34,21 @@ class ManageEventSettings extends Page
     public function mount(): void
     {
         $settings = EventSetting::all()->pluck('value', 'key')->toArray();
+        $faqs = Faq::orderBy('sort_order')->get(['id', 'question', 'answer', 'sort_order', 'is_active']);
 
         foreach (self::IMAGE_SETTING_KEYS as $imageKey) {
             $settings[$imageKey . '_upload'] = null;
         }
+
+        $settings['faq_items'] = $faqs
+            ->map(fn (Faq $faq) => [
+                'id' => $faq->id,
+                'question' => $faq->question,
+                'answer' => $faq->answer,
+                'sort_order' => $faq->sort_order,
+                'is_active' => $faq->is_active,
+            ])
+            ->toArray();
 
         $this->form->fill($settings);
     }
@@ -293,6 +305,51 @@ class ManageEventSettings extends Page
                                     Forms\Components\Textarea::make('rules_cta_description')->label('CTA Description')->rows(2),
                                 ]),
                             ]),
+
+                        Forms\Components\Tabs\Tab::make('FAQ')
+                            ->icon('heroicon-o-question-mark-circle')
+                            ->schema([
+                                Forms\Components\Section::make('Frequently Asked Questions')
+                                    ->description('Tambahkan pertanyaan dan jawaban FAQ langsung dari halaman Event Settings.')
+                                    ->schema([
+                                        Forms\Components\Repeater::make('faq_items')
+                                            ->label('FAQ Items')
+                                            ->addActionLabel('Add FAQ')
+                                            ->defaultItems(0)
+                                            ->reorderableWithButtons()
+                                            ->collapsible()
+                                            ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
+                                            ->schema([
+                                                Forms\Components\Hidden::make('id'),
+                                                Forms\Components\TextInput::make('question')
+                                                    ->label('Question')
+                                                    ->required()
+                                                    ->maxLength(500)
+                                                    ->columnSpanFull(),
+                                                Forms\Components\RichEditor::make('answer')
+                                                    ->label('Answer')
+                                                    ->required()
+                                                    ->toolbarButtons([
+                                                        'bold',
+                                                        'italic',
+                                                        'underline',
+                                                        'link',
+                                                        'bulletList',
+                                                        'orderedList',
+                                                    ])
+                                                    ->columnSpanFull(),
+                                                Forms\Components\TextInput::make('sort_order')
+                                                    ->label('Sort Order')
+                                                    ->numeric()
+                                                    ->default(0),
+                                                Forms\Components\Toggle::make('is_active')
+                                                    ->label('Active')
+                                                    ->default(true),
+                                            ])
+                                            ->columns(2)
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
                     ])->columnSpanFull()->persistTabInQueryString(),
             ])
             ->statePath('data');
@@ -301,6 +358,9 @@ class ManageEventSettings extends Page
     public function save(): void
     {
         $data = $this->form->getState();
+        $faqItems = $data['faq_items'] ?? [];
+
+        unset($data['faq_items']);
 
         foreach (self::IMAGE_SETTING_KEYS as $imageKey) {
             $uploadKey = $imageKey . '_upload';
@@ -322,6 +382,31 @@ class ManageEventSettings extends Page
                 ]
             );
         }
+
+        $keptFaqIds = [];
+
+        foreach ($faqItems as $faqItem) {
+            if (empty(trim((string) ($faqItem['question'] ?? ''))) || empty(trim((string) ($faqItem['answer'] ?? '')))) {
+                continue;
+            }
+
+            $faq = Faq::updateOrCreate(
+                ['id' => $faqItem['id'] ?? null],
+                [
+                    'question' => $faqItem['question'],
+                    'answer' => $faqItem['answer'],
+                    'sort_order' => (int) ($faqItem['sort_order'] ?? 0),
+                    'is_active' => (bool) ($faqItem['is_active'] ?? true),
+                ]
+            );
+
+            $keptFaqIds[] = $faq->id;
+        }
+
+        Faq::query()
+            ->when(! empty($keptFaqIds), fn ($query) => $query->whereNotIn('id', $keptFaqIds))
+            ->when(empty($keptFaqIds), fn ($query) => $query)
+            ->delete();
 
         Notification::make()
             ->title('Settings saved successfully')
@@ -360,7 +445,7 @@ class ManageEventSettings extends Page
                 ->helperText('Upload gambar baru untuk menggantikan URL yang sedang dipakai.'),
             Forms\Components\TextInput::make($settingKey)
                 ->label($label . ' URL')
-                ->url()
+                ->helperText('Bisa diisi URL penuh (https://...) atau path storage (mis. event-settings/nama-file.jpg).')
                 ->suffixIcon('heroicon-o-photo'),
         ];
     }

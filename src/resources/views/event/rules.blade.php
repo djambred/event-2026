@@ -121,7 +121,7 @@
                         <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#8B6914]">
                             <span class="material-symbols-outlined">videocam</span>
                         </div>
-                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Zoom Session (Mandatory)</h3>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Mandatory Workshop (Zoom)</h3>
                     </div>
                     <div class="bg-white rounded-2xl p-6 mb-4">
                         <p class="font-['Plus_Jakarta_Sans'] font-bold text-[#8B6914] text-lg mb-1">{{ $settings['st_en_zoom_date'] ?? 'May 4, 2026 at 08:00 AM (Jakarta\'s time)' }}</p>
@@ -284,7 +284,7 @@
                         <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#8B6914]">
                             <span class="material-symbols-outlined">videocam</span>
                         </div>
-                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Zoom Session (Mandatory)</h3>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Mandatory Workshop (Zoom)</h3>
                     </div>
                     <div class="bg-white rounded-2xl p-6 mb-4">
                         <p class="font-['Plus_Jakarta_Sans'] font-bold text-[#8B6914] text-lg mb-1">{{ $settings['st_id_zoom_date'] ?? 'May 4, 2026 at 08:00 AM (Jakarta\'s time)' }}</p>
@@ -430,7 +430,7 @@
                         <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#8B6914]">
                             <span class="material-symbols-outlined">videocam</span>
                         </div>
-                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Zoom Session (Mandatory)</h3>
+                        <h3 class="text-2xl font-['Plus_Jakarta_Sans'] font-bold text-[#141c27]">Mandatory Workshop (Zoom)</h3>
                     </div>
                     <div class="bg-white rounded-2xl p-6 mb-4">
                         <p class="font-['Plus_Jakarta_Sans'] font-bold text-[#8B6914] text-lg mb-1">{{ $settings['ps_zoom_date'] ?? 'May 4, 2026 at 08:00 AM (Jakarta\'s time)' }}</p>
