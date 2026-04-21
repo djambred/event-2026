@@ -104,7 +104,7 @@ class Registration extends Model
 
     /**
      * Calculate final score. Score range: 0-10, Weight: percentage (sums to 100).
-     * Formula: sum(score × weight / 100) for each criteria.
+     * Formula: sum(avg(score) × weight / 100) for each criteria.
      */
     public function calculateFinalScore(string $round = 'selection'): float
     {
@@ -112,12 +112,13 @@ class Registration extends Model
         $totalWeightedScore = 0;
 
         foreach ($criterias as $criteria) {
-            $score = $this->scores()
+            $averageScore = $this->scores()
                 ->where('judging_criteria_id', $criteria->id)
                 ->where('round', $round)
-                ->first();
-            if ($score) {
-                $totalWeightedScore += ($score->score * $criteria->weight / 100);
+                ->avg('score');
+
+            if ($averageScore !== null) {
+                $totalWeightedScore += ($averageScore * $criteria->weight / 100);
             }
         }
 

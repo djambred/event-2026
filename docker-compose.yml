@@ -20,7 +20,7 @@ services:
       context: ./nginx
     container_name: event_nginx
     ports:
-      - "8443:443"
+      - "9443:443"
       - "8100:80"
     volumes:
       - ./src:/var/www/html

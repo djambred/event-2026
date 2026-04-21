@@ -6,6 +6,7 @@ namespace App\Models;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -64,6 +65,20 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        return match ($panel->getId()) {
+            'ueu' => ! $this->hasRole('jury') || $this->hasRole('super_admin'),
+            'jury' => $this->hasRole('jury') || $this->hasRole('super_admin'),
+            default => false,
+        };
+    }
+
+    public function assignedCompetitionCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            CompetitionCategory::class,
+            'competition_category_judge',
+            'user_id',
+            'competition_category_id'
+        )->withTimestamps();
     }
 }

@@ -3,12 +3,14 @@
 namespace App\Filament\Admin\Resources\RegistrationResource\Pages;
 
 use App\Filament\Admin\Resources\RegistrationResource;
+use App\Models\User;
 use Filament\Actions;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Support\Facades\Auth;
 
 class ViewRegistration extends ViewRecord
 {
@@ -16,8 +18,12 @@ class ViewRegistration extends ViewRecord
 
     protected function getHeaderActions(): array
     {
+        $authUser = Auth::user();
+        $isJury = $authUser instanceof User && $authUser->hasRole('jury');
+
         return [
-            Actions\EditAction::make(),
+            Actions\EditAction::make()
+                ->visible(fn () => ! $isJury),
         ];
     }
 

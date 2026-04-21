@@ -15,7 +15,7 @@ class RegistrationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_registration');
+        return $user->can('view_any_registration') || $user->hasRole('jury');
     }
 
     /**
@@ -23,6 +23,12 @@ class RegistrationPolicy
      */
     public function view(User $user, Registration $registration): bool
     {
+        if ($user->hasRole('jury')) {
+            return $user->assignedCompetitionCategories()
+                ->where('competition_categories.id', $registration->competition_category_id)
+                ->exists();
+        }
+
         return $user->can('view_registration');
     }
 
@@ -31,6 +37,10 @@ class RegistrationPolicy
      */
     public function create(User $user): bool
     {
+        if ($user->hasRole('jury')) {
+            return false;
+        }
+
         return $user->can('create_registration');
     }
 
@@ -39,6 +49,10 @@ class RegistrationPolicy
      */
     public function update(User $user, Registration $registration): bool
     {
+        if ($user->hasRole('jury')) {
+            return $this->view($user, $registration);
+        }
+
         return $user->can('update_registration');
     }
 
@@ -47,6 +61,10 @@ class RegistrationPolicy
      */
     public function delete(User $user, Registration $registration): bool
     {
+        if ($user->hasRole('jury')) {
+            return false;
+        }
+
         return $user->can('delete_registration');
     }
 
@@ -55,6 +73,10 @@ class RegistrationPolicy
      */
     public function deleteAny(User $user): bool
     {
+        if ($user->hasRole('jury')) {
+            return false;
+        }
+
         return $user->can('delete_any_registration');
     }
 

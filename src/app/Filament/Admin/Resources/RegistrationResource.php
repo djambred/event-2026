@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources;
 use App\Filament\Admin\Resources\RegistrationResource\Pages;
 use App\Filament\Admin\Resources\RegistrationResource\RelationManagers;
 use App\Models\Registration;
+use App\Models\User;
 use App\Services\CertificateService;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class RegistrationResource extends Resource
@@ -24,14 +27,50 @@ class RegistrationResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    private static function currentUserIsJury(): bool
+    {
+        $user = Auth::user();
+
+        return $user instanceof User && $user->hasRole('jury');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return self::currentUserIsJury() ? 'Portal Juri' : 'Registrations';
+    }
+
     public static function getNavigationBadge(): ?string
     {
+        if (self::currentUserIsJury()) {
+            return null;
+        }
+
         return static::getModel()::where('status', 'pending')->count() ?: null;
     }
 
     public static function getNavigationBadgeColor(): ?string
     {
         return 'warning';
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = Auth::user();
+
+        if (! ($user instanceof User) || ! $user->hasRole('jury')) {
+            return $query;
+        }
+
+        $categoryIds = $user->assignedCompetitionCategories()->pluck('competition_categories.id');
+
+        if ($categoryIds->isEmpty()) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            ->whereIn('competition_category_id', $categoryIds)
+            ->where('status', 'confirmed');
     }
 
     public static function form(Form $form): Form
@@ -278,14 +317,14 @@ class RegistrationResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (Registration $record): bool => $record->status === 'pending')
+                    ->visible(fn (Registration $record): bool => ! self::currentUserIsJury() && $record->status === 'pending')
                     ->action(fn (Registration $record) => $record->update(['status' => 'confirmed'])),
 
                 Tables\Actions\Action::make('reject')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (Registration $record): bool => $record->status === 'pending')
+                    ->visible(fn (Registration $record): bool => ! self::currentUserIsJury() && $record->status === 'pending')
                     ->action(fn (Registration $record) => $record->update(['status' => 'rejected'])),
 
                 Tables\Actions\Action::make('calculateScore')
@@ -293,7 +332,7 @@ class RegistrationResource extends Resource
                     ->icon('heroicon-o-calculator')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->visible(fn (Registration $record): bool => $record->status === 'confirmed' && $record->scores()->exists())
+                    ->visible(fn (Registration $record): bool => ! self::currentUserIsJury() && $record->status === 'confirmed' && $record->scores()->exists())
                     ->action(function (Registration $record) {
                         $finalScore = $record->calculateFinalScore();
                         $record->update(['final_score' => $finalScore]);
@@ -321,7 +360,7 @@ class RegistrationResource extends Resource
                     ->color('info')
                     ->requiresConfirmation()
                     ->modalDescription('Generate a participation/thank you certificate for this participant.')
-                    ->visible(fn (Registration $record): bool => $record->status === 'confirmed')
+                    ->visible(fn (Registration $record): bool => ! self::currentUserIsJury() && $record->status === 'confirmed')
                     ->action(function (Registration $record) {
                         try {
                             $path = app(CertificateService::class)->generate($record, 'participation');
@@ -345,7 +384,7 @@ class RegistrationResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalDescription('Generate a winner/achievement certificate for this participant.')
-                    ->visible(fn (Registration $record): bool => $record->status === 'confirmed' && $record->final_score !== null && $record->rank !== null)
+                    ->visible(fn (Registration $record): bool => ! self::currentUserIsJury() && $record->status === 'confirmed' && $record->final_score !== null && $record->rank !== null)
                     ->action(function (Registration $record) {
                         try {
                             $path = app(CertificateService::class)->generate($record, 'winner');
@@ -367,6 +406,7 @@ class RegistrationResource extends Resource
                     ->label('Portal URL')
                     ->icon('heroicon-o-link')
                     ->color('gray')
+                    ->visible(fn (): bool => ! self::currentUserIsJury())
                     ->action(function (Registration $record) {
                         $url = $record->getPortalUrl();
                         Notification::make()
@@ -381,6 +421,7 @@ class RegistrationResource extends Resource
                     ->label('Berkas')
                     ->icon('heroicon-o-folder-open')
                     ->color('info')
+                    ->visible(fn (): bool => ! self::currentUserIsJury())
                     ->modalHeading(fn (Registration $record): string => 'Berkas - ' . $record->full_name)
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup')
@@ -394,6 +435,7 @@ class RegistrationResource extends Resource
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalDescription('This will generate a new Register Key for the participant. The new key will be shown once — make sure to copy it.')
+                    ->visible(fn (): bool => ! self::currentUserIsJury())
                     ->action(function (Registration $record) {
                         $newKey = Registration::generateRegisterKey();
                         $record->update([
@@ -409,8 +451,10 @@ class RegistrationResource extends Resource
                     }),
 
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (): bool => ! self::currentUserIsJury()),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (): bool => ! self::currentUserIsJury()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -476,7 +520,8 @@ class RegistrationResource extends Resource
                         }),
 
                     Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                ])
+                    ->visible(fn (): bool => ! self::currentUserIsJury(),)
             ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CompetitionCategory extends Model
@@ -46,6 +47,16 @@ class CompetitionCategory extends Model
     public function announcements(): HasMany
     {
         return $this->hasMany(Announcement::class);
+    }
+
+    public function judges(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'competition_category_judge',
+            'competition_category_id',
+            'user_id'
+        )->withTimestamps();
     }
 
     public function getActiveCertificateTemplate(?string $type = null): ?CertificateTemplate

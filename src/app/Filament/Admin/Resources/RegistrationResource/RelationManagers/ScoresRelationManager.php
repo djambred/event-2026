@@ -5,12 +5,14 @@ namespace App\Filament\Admin\Resources\RegistrationResource\RelationManagers;
 use App\Models\JudgingCriteria;
 use App\Models\Score;
 use App\Models\Registration;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
 class ScoresRelationManager extends RelationManager
@@ -49,7 +51,7 @@ class ScoresRelationManager extends RelationManager
                     ->rows(2),
 
                 Forms\Components\Hidden::make('scored_by')
-                    ->default(fn () => auth()->id()),
+                    ->default(fn () => Auth::id()),
 
                 Forms\Components\Hidden::make('round')
                     ->default(fn () => $this->activeRound),
@@ -61,9 +63,19 @@ class ScoresRelationManager extends RelationManager
         $isGrandfinal = $this->activeRound === 'grandfinal';
         $registration = $this->getOwnerRecord();
         $isFinalist = in_array($registration->stage, ['finalist', 'grandfinal']);
+        $authUser = Auth::user();
+        $isJury = $authUser instanceof User && $authUser->hasRole('jury');
 
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->where('round', $this->activeRound))
+            ->modifyQueryUsing(function ($query) use ($isJury) {
+                $query->where('round', $this->activeRound);
+
+                if ($isJury) {
+                    $query->where('scored_by', Auth::id());
+                }
+
+                return $query;
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('round')
                     ->badge()
@@ -132,6 +144,7 @@ class ScoresRelationManager extends RelationManager
                             $exists = Score::where('registration_id', $registration->id)
                                 ->where('judging_criteria_id', $criteria->id)
                                 ->where('round', $this->activeRound)
+                                ->where('scored_by', Auth::id())
                                 ->exists();
 
                             if (!$exists) {
@@ -140,7 +153,7 @@ class ScoresRelationManager extends RelationManager
                                     'judging_criteria_id' => $criteria->id,
                                     'round' => $this->activeRound,
                                     'score' => 0,
-                                    'scored_by' => auth()->id(),
+                                    'scored_by' => Auth::id(),
                                 ]);
                                 $created++;
                             }
@@ -157,6 +170,7 @@ class ScoresRelationManager extends RelationManager
                     ->icon('heroicon-o-calculator')
                     ->color('success')
                     ->requiresConfirmation()
+                    ->visible(fn () => ! $isJury)
                     ->action(function () use ($isGrandfinal) {
                         $registration = $this->getOwnerRecord();
 
@@ -211,17 +225,19 @@ class ScoresRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()
                     ->label('Add Single Score')
                     ->mutateFormDataUsing(function (array $data): array {
-                        $data['scored_by'] = auth()->id();
+                        $data['scored_by'] = Auth::id();
                         $data['round'] = $this->activeRound;
                         return $data;
                     }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn () => ! $isJury),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->visible(fn () => ! $isJury),
             ]);
     }
 }

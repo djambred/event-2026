@@ -89,6 +89,13 @@ class UserResource extends Resource
                             ->multiple()
                             ->relationship('roles', 'name')
                             ->label('Roles'),
+                        Forms\Components\Select::make('assignedCompetitionCategories')
+                            ->relationship('assignedCompetitionCategories', 'name')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->label('Assigned Competition Categories (Judge Mapping)')
+                            ->helperText('Pemetaan ini digunakan untuk menentukan kategori lomba yang bisa dinilai oleh akun juri.'),
                     ])
                     ->columns(1),
 
@@ -116,6 +123,11 @@ class UserResource extends Resource
                     ->badge()
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('assignedCompetitionCategories.name')
+                    ->label('Assigned Categories')
+                    ->badge()
+                    ->separator(', ')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->date()
                     ->sortable()
