@@ -6,6 +6,7 @@ use App\Models\Announcement;
 use App\Models\CompetitionCategory;
 use App\Models\EventSetting;
 use App\Models\Faq;
+use App\Models\Sponsor;
 
 class EventController extends Controller
 {
@@ -18,8 +19,12 @@ class EventController extends Controller
             ->with('competitionCategory')
             ->latest('published_at')
             ->get();
+        $sponsors = Sponsor::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('tier');
 
-        return view('event.home', compact('categories', 'settings', 'faqs', 'announcements'));
+        return view('event.home', compact('categories', 'settings', 'faqs', 'announcements', 'sponsors'));
     }
 
     public function rules()

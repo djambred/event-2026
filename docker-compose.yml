@@ -20,8 +20,8 @@ services:
       context: ./nginx
     container_name: event_nginx
     ports:
-      - "9443:443"
-      - "8100:80"
+      - "443:443"
+      - "80:80"
     volumes:
       - ./src:/var/www/html
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf

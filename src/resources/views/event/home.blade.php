@@ -202,6 +202,74 @@
 </section>
 @endif
 
+{{-- Sponsors Section --}}
+@if(isset($sponsors) && $sponsors->isNotEmpty())
+<section id="sponsors" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-14">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-[#FFF0C8] text-[#3D2B00] rounded-full text-xs font-['Work_Sans'] font-medium mb-4">
+                <span class="material-symbols-outlined text-sm">handshake</span>
+                Our Sponsors
+            </div>
+            <h2 class="font-['Plus_Jakarta_Sans'] font-extrabold text-4xl text-[#141c27] mb-4">Supported By</h2>
+            <p class="font-['Inter'] text-[#404750] max-w-xl mx-auto">Thank you to our sponsors and partners who make this event possible.</p>
+        </div>
+
+        @php
+            $tierOrder = ['platinum', 'gold', 'silver', 'bronze', 'media_partner'];
+            $tierLabels = [
+                'platinum'     => 'Platinum Sponsor',
+                'gold'         => 'Gold Sponsor',
+                'silver'       => 'Silver Sponsor',
+                'bronze'       => 'Bronze Sponsor',
+                'media_partner'=> 'Media Partner',
+            ];
+            $tierCols = [
+                'platinum'     => 'grid-cols-2 md:grid-cols-3',
+                'gold'         => 'grid-cols-3 md:grid-cols-4',
+                'silver'       => 'grid-cols-3 md:grid-cols-5',
+                'bronze'       => 'grid-cols-4 md:grid-cols-6',
+                'media_partner'=> 'grid-cols-4 md:grid-cols-6',
+            ];
+        @endphp
+
+        @foreach($tierOrder as $tier)
+            @if($sponsors->has($tier))
+                <div class="mb-12">
+                    <h3 class="text-center font-['Work_Sans'] font-semibold text-sm text-[#404750] uppercase tracking-widest mb-6">
+                        {{ $tierLabels[$tier] }}
+                    </h3>
+                    <div class="grid {{ $tierCols[$tier] }} gap-6 items-center justify-items-center">
+                        @foreach($sponsors[$tier] as $sponsor)
+                            @if($sponsor->website_url)
+                                <a href="{{ $sponsor->website_url }}" target="_blank" rel="noopener noreferrer"
+                                   class="group flex items-center justify-center p-4 rounded-2xl border border-[#e1e9f8] hover:shadow-md hover:border-[#0D5DA6] transition-all bg-white w-full h-24">
+                            @else
+                                <div class="flex items-center justify-center p-4 rounded-2xl border border-[#e1e9f8] bg-white w-full h-24">
+                            @endif
+                                @if($sponsor->logo)
+                                    <img
+                                        src="{{ $sponsor->logo_url }}"
+                                        alt="{{ $sponsor->name }}"
+                                        class="max-h-14 max-w-full object-contain {{ $sponsor->website_url ? 'group-hover:scale-105 transition-transform' : '' }}"
+                                    />
+                                @else
+                                    <span class="font-['Plus_Jakarta_Sans'] font-bold text-[#003B73] text-center text-sm leading-tight">{{ $sponsor->name }}</span>
+                                @endif
+                            @if($sponsor->website_url)
+                                </a>
+                            @else
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        @endforeach
+    </div>
+</section>
+@endif
+
 {{-- FAQ Section --}}
 <section id="faq" class="py-24 bg-[#f8f9ff]">
     <div class="max-w-4xl mx-auto px-6">
