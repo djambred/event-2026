@@ -18,7 +18,7 @@ if [ ! -f /var/www/html/.env ]; then
 
   APP_ENV_VALUE="${APP_ENV:-local}"
   APP_DEBUG_VALUE="${APP_DEBUG:-true}"
-  APP_URL_VALUE="${APP_URL:-https://international-events2026.esaunggul.ac.id/}"
+  APP_URL_VALUE="${APP_URL:-https://international-events2026.esaunggul.ac.id}"
   ASSET_URL_VALUE="${ASSET_URL:-$APP_URL_VALUE}"
 
   # Create .env file with the required values
@@ -62,6 +62,7 @@ SESSION_LIFETIME=120
 SESSION_ENCRYPT=true
 SESSION_PATH=/
 SESSION_DOMAIN=null
+CORS_ALLOWED_ORIGINS="https://international-events2026.esaunggul.ac.id,https://event.test,http://event.test,https://event.test:9443,http://event.test:9443"
 
 BROADCAST_CONNECTION=log
 FILESYSTEM_DISK=local
