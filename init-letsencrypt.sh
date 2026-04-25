@@ -10,9 +10,16 @@ EMAIL="jefry.sunupurwa@esaunggul.ac.id"   # Ganti dengan email Anda
 STAGING=0                        # Set ke 1 untuk testing (hindari rate limit)
 DATA_PATH="./certbot"
 
+# Bersihkan direktori certbot lama jika ada (mungkin dimiliki root dari run sebelumnya)
+if [ -d "$DATA_PATH" ]; then
+  echo "### Membersihkan direktori certbot lama ..."
+  sudo rm -rf "$DATA_PATH"
+fi
+
 # Buat direktori yang dibutuhkan
-mkdir -p "$DATA_PATH/conf/live/$DOMAIN"
-mkdir -p "$DATA_PATH/www"
+sudo mkdir -p "$DATA_PATH/conf/live/$DOMAIN"
+sudo mkdir -p "$DATA_PATH/www"
+sudo chown -R "$USER:$USER" "$DATA_PATH"
 
 echo "### Membuat dummy certificate untuk $DOMAIN agar nginx bisa start ..."
 openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
