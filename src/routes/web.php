@@ -18,6 +18,12 @@ Livewire::setUpdateRoute(function ($handle) {
 Livewire::setScriptRoute(function ($handle) {
     return Route::get(config('app.asset_prefix') . '/livewire/livewire.js', $handle);
 });
+
+// Override Livewire upload route to avoid Cloudflare WAF blocking /livewire/upload-file.
+// Laravel resolves the LAST registered route with a given name, so this overrides Livewire's default.
+// The signed URL will be generated for this path, so signature validation stays intact.
+Route::post(config('app.asset_prefix') . '/ueu/store-media', [\Livewire\Features\SupportFileUploads\FileUploadController::class, 'handle'])
+    ->name('livewire.upload-file');
 /*
 / END
 */
