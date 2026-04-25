@@ -30,7 +30,7 @@ services:
     depends_on:
       - php
     healthcheck:
-      test: ["CMD-SHELL", "curl --silent --show-error --fail --insecure https://international-events.esaunggul.ac.id/up || exit 1"]
+      test: ["CMD-SHELL", "curl --silent --show-error --fail --insecure https://international-events2026.esaunggul.ac.id/up || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
